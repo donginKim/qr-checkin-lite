@@ -1,0 +1,18 @@
+app:
+  security:
+    phone-hash-salt: "CHANGE_ME_SALT"
+  frontend:
+    checkin-base-url: "http://localhost:5173"
+
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/attendance.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
