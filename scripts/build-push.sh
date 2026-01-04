@@ -21,15 +21,15 @@ if ! docker info 2>/dev/null | grep -q "Username"; then
     docker login
 fi
 
-# API 이미지 빌드
+# API 이미지 빌드 (linux/amd64 플랫폼)
 echo ""
-echo "🔨 Building API image..."
-docker build -t $API_IMAGE ./api
+echo "🔨 Building API image (linux/amd64)..."
+docker build --platform linux/amd64 -t $API_IMAGE ./api
 
-# Web 이미지 빌드
+# Web 이미지 빌드 (linux/amd64 플랫폼)
 echo ""
-echo "🔨 Building Web image..."
-docker build -t $WEB_IMAGE ./web
+echo "🔨 Building Web image (linux/amd64)..."
+docker build --platform linux/amd64 -t $WEB_IMAGE ./web
 
 # 이미지 푸시
 echo ""

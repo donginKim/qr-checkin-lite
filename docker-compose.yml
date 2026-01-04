@@ -9,6 +9,7 @@ services:
       - ./data:/app/data  # SQLite 데이터 영구 저장
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - CHECKIN_BASE_URL=${CHECKIN_BASE_URL:-http://localhost}
     networks:
       - app-network
 

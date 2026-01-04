@@ -1,8 +1,8 @@
 app:
   security:
-    phone-hash-salt: "CHANGE_ME_SALT"
+    phone-hash-salt: "${PHONE_HASH_SALT:CHANGE_ME_SALT}"
   frontend:
-    checkin-base-url: "http://localhost:5173"
+    checkin-base-url: "${CHECKIN_BASE_URL:http://localhost:5173}"
 
 spring:
   datasource:
