@@ -11,6 +11,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - CHECKIN_BASE_URL=${CHECKIN_BASE_URL}
       - PHONE_HASH_SALT=${PHONE_HASH_SALT}
+      - ATTENDANCE_RETENTION_DAYS=${ATTENDANCE_RETENTION_DAYS:-0}
     networks:
       - app-network
 

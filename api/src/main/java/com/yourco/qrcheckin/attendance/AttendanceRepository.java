@@ -63,4 +63,11 @@ public class AttendanceRepository {
                 sessionId
         );
     }
+
+    public int deleteOlderThan(String cutoffDate) {
+        return jdbc.update(
+                "DELETE FROM attendances WHERE checked_in_at < ?",
+                cutoffDate
+        );
+    }
 }
