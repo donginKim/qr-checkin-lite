@@ -1,0 +1,20 @@
+# Build
+build/
+.gradle/
+bin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Data
+data/
+*.db
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+

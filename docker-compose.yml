@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    container_name: qr-checkin-api
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data  # SQLite 데이터 영구 저장
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - app-network
+
+  web:
+    build: ./web
+    container_name: qr-checkin-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+

@@ -1,7 +1,15 @@
+// 참가자 검색 결과
+export type ParticipantSearchItem = {
+  id: number
+  name: string
+  phoneLast4: string
+}
+
+// 체크인 요청
 export type CheckinRequest = {
   sessionId: string
   token: string
-  name: string
+  participantId: number
   phone: string
 }
 
@@ -10,6 +18,17 @@ export type CheckinResult = {
   message: string
 }
 
+// 이름으로 참가자 검색
+export async function searchParticipants(query: string): Promise<ParticipantSearchItem[]> {
+  if (!query.trim()) return []
+  
+  const resp = await fetch(`/api/participants/search?q=${encodeURIComponent(query)}&limit=10`)
+  if (!resp.ok) return []
+  
+  return resp.json()
+}
+
+// 체크인 요청
 export async function submitCheckin(req: CheckinRequest): Promise<CheckinResult> {
   const resp = await fetch('/api/checkin', {
     method: 'POST',
@@ -17,11 +36,9 @@ export async function submitCheckin(req: CheckinRequest): Promise<CheckinResult>
     body: JSON.stringify(req),
   })
 
-  // 백엔드 GlobalExceptionHandler가 JSON 형태로 준다고 가정
   const data = await resp.json().catch(() => ({}))
 
   if (!resp.ok) {
-    // 서버 에러 포맷이 {message: "..."} 또는 {code,message} 등일 수 있음
     const msg = data?.message ?? '요청 실패'
     return { ok: false, message: msg }
   }

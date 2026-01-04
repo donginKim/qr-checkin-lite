@@ -1,7 +1,7 @@
 # QR Check-in Lite - Makefile
 # 편리한 개발 명령어 모음
 
-.PHONY: start stop api web install clean build help
+.PHONY: start stop api web install clean build seed help
 
 # 기본 명령어
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "║  make install  - 의존성 설치 (npm + gradle)               ║"
 	@echo "║  make build    - 프로덕션 빌드                            ║"
 	@echo "║  make clean    - 빌드 파일 정리                           ║"
+	@echo "║  make seed     - 테스트 데이터 삽입                       ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 
 # 동시 실행
@@ -55,4 +56,10 @@ clean:
 	@cd api && ./gradlew clean
 	@cd web && rm -rf dist node_modules/.vite
 	@echo "✅ Clean complete"
+
+# 테스트 데이터 삽입
+seed:
+	@echo "🌱 Inserting test data..."
+	@sqlite3 api/data/attendance.db < scripts/seed-test-data.sql
+	@echo "✅ Test data inserted"
 

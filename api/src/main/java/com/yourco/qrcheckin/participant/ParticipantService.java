@@ -3,12 +3,15 @@ package com.yourco.qrcheckin.participant;
 import com.yourco.qrcheckin.common.util.HashingService;
 import com.yourco.qrcheckin.common.util.PhoneNormalizer;
 import com.yourco.qrcheckin.infra.excel.ParticipantExcelImporter;
+import com.yourco.qrcheckin.participant.model.ParticipantCreateRequest;
 import com.yourco.qrcheckin.participant.model.ParticipantImportResult;
+import com.yourco.qrcheckin.participant.model.ParticipantSearchItem;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -70,4 +73,43 @@ public class ParticipantService {
         return repo.countAll();
     }
 
+    public List<ParticipantSearchItem> findAllParticipants() {
+        return repo.findAll().stream()
+                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4()))
+                .toList();
+    }
+
+    @Transactional
+    public ParticipantSearchItem addParticipant(ParticipantCreateRequest req) {
+        String name = req.name().trim();
+        String phoneNorm = PhoneNormalizer.normalize(req.phone());
+        
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("이름을 입력해주세요.");
+        }
+        if (phoneNorm.isBlank()) {
+            throw new IllegalArgumentException("올바른 전화번호를 입력해주세요.");
+        }
+
+        String phoneHash = hashing.sha256(phoneNorm);
+        String last4 = PhoneNormalizer.last4(phoneNorm);
+
+        // 중복 체크
+        if (repo.findByNameAndPhoneHash(name, phoneHash).isPresent()) {
+            throw new IllegalArgumentException("이미 등록된 신자입니다.");
+        }
+
+        repo.insert(name, phoneHash, last4);
+        
+        // 방금 추가된 신자 조회해서 반환
+        var participant = repo.findByNameAndPhoneHash(name, phoneHash)
+                .orElseThrow(() -> new RuntimeException("신자 등록 실패"));
+        
+        return new ParticipantSearchItem(participant.id(), participant.name(), participant.phoneLast4());
+    }
+
+    @Transactional
+    public void deleteParticipant(long id) {
+        repo.deleteById(id);
+    }
 }

@@ -1,12 +1,21 @@
-import { useMemo, useState } from 'react'
-import { getQueryParam } from '../../lib/url'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { getSessionByCode } from '../../api/sessions'
+import type { SessionPublicInfo } from '../../api/sessions'
 import { searchParticipants, submitCheckin } from '../../api/checkin'
 import type { ParticipantSearchItem } from '../../api/checkin'
+import { useChurch } from '../../context/ChurchContext'
 
-export default function CheckinPage() {
-  const sid = useMemo(() => getQueryParam('sid') ?? '', [])
-  const token = useMemo(() => getQueryParam('t') ?? '', [])
+export default function ShortCodeCheckinPage() {
+  const { code } = useParams<{ code: string }>()
+  const { churchName } = useChurch()
+  
+  // 세션 정보
+  const [session, setSession] = useState<SessionPublicInfo | null>(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
+  const [sessionError, setSessionError] = useState<string | null>(null)
 
+  // 체크인 상태
   const [searchName, setSearchName] = useState('')
   const [searchResults, setSearchResults] = useState<ParticipantSearchItem[]>([])
   const [searching, setSearching] = useState(false)
@@ -15,6 +24,19 @@ export default function CheckinPage() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  // 세션 정보 로드
+  useEffect(() => {
+    if (!code) return
+    
+    setSessionLoading(true)
+    setSessionError(null)
+    
+    getSessionByCode(code)
+      .then(setSession)
+      .catch(err => setSessionError(err.message))
+      .finally(() => setSessionLoading(false))
+  }, [code])
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -50,20 +72,15 @@ export default function CheckinPage() {
 
   async function handleCheckin(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedParticipant || !phone.trim()) return
-
-    if (!sid || !token) {
-      setResult({ ok: false, message: 'QR 코드를 통해 접속해주세요.' })
-      return
-    }
+    if (!selectedParticipant || !phone.trim() || !session) return
 
     setLoading(true)
     setResult(null)
 
     try {
       const res = await submitCheckin({
-        sessionId: sid,
-        token,
+        sessionId: session.id,
+        token: code!, // shortCode를 토큰으로 사용
         participantId: selectedParticipant.id,
         phone: phone.trim(),
       })
@@ -73,13 +90,60 @@ export default function CheckinPage() {
     }
   }
 
+  function formatDate(dateStr: string) {
+    const date = new Date(dateStr)
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    return `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일 (${days[date.getDay()]})`
+  }
+
+  // 로딩 중
+  if (sessionLoading) {
+    return (
+      <div style={styles.centerContainer}>
+        <div style={styles.spinner}>⏳</div>
+        <p>세션 정보를 확인하는 중...</p>
+      </div>
+    )
+  }
+
+  // 에러 또는 세션 없음
+  if (sessionError || !session) {
+    return (
+      <div style={styles.centerContainer}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>⚠️</div>
+        <h2 style={{ color: 'var(--color-primary)', margin: '0 0 8px 0' }}>
+          유효하지 않은 코드
+        </h2>
+        <p style={{ color: 'var(--color-text-light)' }}>
+          {sessionError || 'QR 코드를 다시 확인해주세요.'}
+        </p>
+      </div>
+    )
+  }
+
+  // 세션 종료됨
+  if (session.status !== 'ACTIVE') {
+    return (
+      <div style={styles.centerContainer}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
+        <h2 style={{ color: 'var(--color-primary)', margin: '0 0 8px 0' }}>
+          출석이 마감되었습니다
+        </h2>
+        <p style={{ color: 'var(--color-text-light)' }}>
+          {session.title} ({formatDate(session.sessionDate)})
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
         <div style={styles.cross}>✝</div>
-        <h1 style={styles.title}>출석 체크</h1>
-        <p style={styles.subtitle}>주님의 평화가 함께 하시길</p>
+        <p style={styles.churchName}>{churchName}</p>
+        <h1 style={styles.title}>{session.title}</h1>
+        <p style={styles.subtitle}>{formatDate(session.sessionDate)}</p>
       </div>
 
       <div style={styles.card}>
@@ -161,7 +225,7 @@ export default function CheckinPage() {
 
               <button
                 type="submit"
-                disabled={!phone.trim() || loading || !sid || !token}
+                disabled={!phone.trim() || loading}
                 style={styles.checkinButton}
               >
                 {loading ? '처리 중...' : '✝ 출석하기'}
@@ -187,12 +251,6 @@ export default function CheckinPage() {
           </div>
         )}
       </div>
-
-      {(!sid || !token) && (
-        <p style={styles.hint}>
-          💡 QR 코드를 스캔하여 접속해주세요
-        </p>
-      )}
     </div>
   )
 }
@@ -204,6 +262,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '40px 20px',
     minHeight: '100vh',
   },
+  centerContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    padding: 20,
+    textAlign: 'center',
+  },
+  spinner: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
   header: {
     textAlign: 'center',
     marginBottom: 32,
@@ -214,6 +285,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: 8,
     textShadow: '0 2px 4px rgba(201, 162, 39, 0.3)',
   },
+  churchName: {
+    margin: '0 0 4px 0',
+    fontSize: 16,
+    color: 'var(--color-text-light)',
+    fontWeight: 500,
+  },
   title: {
     fontSize: 28,
     margin: '0 0 8px 0',
@@ -222,7 +299,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   subtitle: {
     margin: 0,
     color: 'var(--color-text-light)',
-    fontStyle: 'italic',
   },
   card: {
     background: 'white',
@@ -287,7 +363,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: 0,
     boxShadow: 'none',
     color: 'var(--color-text)',
-    transition: 'background 0.2s',
   },
   resultName: {
     fontWeight: 600,
@@ -347,10 +422,5 @@ const styles: { [key: string]: React.CSSProperties } = {
   resultText: {
     color: 'var(--color-text-light)',
   },
-  hint: {
-    textAlign: 'center',
-    marginTop: 24,
-    color: 'var(--color-text-light)',
-    fontSize: 14,
-  },
 }
+

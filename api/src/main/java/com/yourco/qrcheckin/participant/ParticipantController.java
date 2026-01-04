@@ -1,14 +1,15 @@
 package com.yourco.qrcheckin.participant;
 
+import com.yourco.qrcheckin.participant.model.ParticipantCreateRequest;
 import com.yourco.qrcheckin.participant.model.ParticipantImportResult;
+import com.yourco.qrcheckin.participant.model.ParticipantSearchItem;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/participants")
@@ -18,6 +19,22 @@ public class ParticipantController {
 
     public ParticipantController(ParticipantService service) {
         this.service = service;
+    }
+
+    @GetMapping
+    public List<ParticipantSearchItem> list() {
+        return service.findAllParticipants();
+    }
+
+    @PostMapping
+    public ParticipantSearchItem add(@Valid @RequestBody ParticipantCreateRequest req) {
+        return service.addParticipant(req);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable long id) {
+        service.deleteParticipant(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

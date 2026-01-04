@@ -67,7 +67,18 @@ public class ParticipantRepository {
         return n == null ? 0 : n;
     }
 
+    public List<Participant> findAll() {
+        return jdbc.query(
+                "SELECT id, name, phone_hash, phone_last4, created_at FROM participants ORDER BY name",
+                MAPPER
+        );
+    }
+
     public void deleteAll() {
         jdbc.update("DELETE FROM participants");
+    }
+
+    public void deleteById(long id) {
+        jdbc.update("DELETE FROM participants WHERE id = ?", id);
     }
 }
