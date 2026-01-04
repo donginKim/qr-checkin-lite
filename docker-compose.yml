@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api:
-    build: ./api
+    image: steve1145/qr-checkin-api:latest
     container_name: qr-checkin-api
     restart: unless-stopped
     volumes:
@@ -13,7 +13,7 @@ services:
       - app-network
 
   web:
-    build: ./web
+    image: steve1145/qr-checkin-web:latest
     container_name: qr-checkin-web
     restart: unless-stopped
     ports:
