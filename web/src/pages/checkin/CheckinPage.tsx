@@ -3,6 +3,7 @@ import { getQueryParam } from '../../lib/url'
 import { searchParticipants, submitCheckin } from '../../api/checkin'
 import type { ParticipantSearchItem } from '../../api/checkin'
 import { getSimpleCheckinMode } from '../../api/settings'
+import Logo from '../../components/Logo'
 
 export default function CheckinPage() {
   const sid = useMemo(() => getQueryParam('sid') ?? '', [])
@@ -99,7 +100,7 @@ export default function CheckinPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="large" />
         <h1 style={styles.title}>출석 체크</h1>
         <p style={styles.subtitle}>주님의 평화가 함께 하시길</p>
       </div>
@@ -239,12 +240,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   header: {
     textAlign: 'center',
     marginBottom: 32,
-  },
-  cross: {
-    fontSize: 48,
-    color: 'var(--color-secondary)',
-    marginBottom: 8,
-    textShadow: '0 2px 4px rgba(201, 162, 39, 0.3)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 28,

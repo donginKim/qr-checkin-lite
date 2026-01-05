@@ -48,7 +48,7 @@ public class SettingsController {
         }
         
         // 허용된 키만 수정 가능
-        if (!key.equals("church_name") && !key.equals("simple_checkin_mode")) {
+        if (!key.equals("church_name") && !key.equals("simple_checkin_mode") && !key.equals("logo_url")) {
             throw new IllegalArgumentException("Unknown setting key: " + key);
         }
         

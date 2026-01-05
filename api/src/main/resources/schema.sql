@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT OR IGNORE INTO settings (key, value) VALUES ('church_name', '성당');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('simple_checkin_mode', 'false');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('logo_url', '');
 
 CREATE TABLE IF NOT EXISTS attendances (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { getSessionWithToken } from '../../api/sessions'
 import type { SessionResponse } from '../../api/sessions'
 import { useChurch } from '../../context/ChurchContext'
+import Logo from '../../components/Logo'
 
 export default function QRDisplayPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -76,7 +77,7 @@ export default function QRDisplayPage() {
     return (
       <div style={styles.fullscreenContainer} onClick={() => setFullscreen(false)}>
         <div style={styles.fullscreenContent}>
-          <div style={styles.fullscreenCross}>✝</div>
+          <Logo size="xlarge" style={{ marginBottom: 16 }} />
           <h1 style={styles.fullscreenChurchName}>{churchName}</h1>
           <h2 style={styles.fullscreenTitle}>{session.title}</h2>
           <p style={styles.fullscreenDate}>{formatDate(session.sessionDate)}</p>
@@ -101,7 +102,7 @@ export default function QRDisplayPage() {
 
       {/* 세션 정보 */}
       <div style={styles.sessionCard}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="medium" style={{ marginBottom: 8 }} />
         <h1 style={styles.sessionTitle}>{session.title}</h1>
         <p style={styles.sessionDate}>{formatDate(session.sessionDate)}</p>
         

@@ -22,6 +22,25 @@ export async function getSimpleCheckinMode(): Promise<boolean> {
   }
 }
 
+// 로고 이미지 업로드
+export async function uploadLogo(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const resp = await fetch('/api/admin/upload/logo', {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!resp.ok) {
+    const error = await resp.json().catch(() => ({}))
+    throw new Error(error.error || '업로드 실패')
+  }
+
+  const data = await resp.json()
+  return data.url
+}
+
 // 모든 설정 조회
 export async function getAllSettings(): Promise<Record<string, string>> {
   const resp = await fetch('/api/admin/settings')

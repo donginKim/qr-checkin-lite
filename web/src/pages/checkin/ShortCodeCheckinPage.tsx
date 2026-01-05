@@ -5,6 +5,8 @@ import type { SessionPublicInfo } from '../../api/sessions'
 import { searchParticipants, submitCheckin } from '../../api/checkin'
 import type { ParticipantSearchItem } from '../../api/checkin'
 import { useChurch } from '../../context/ChurchContext'
+import { getSimpleCheckinMode } from '../../api/settings'
+import Logo from '../../components/Logo'
 
 export default function ShortCodeCheckinPage() {
   const { code } = useParams<{ code: string }>()
@@ -140,7 +142,7 @@ export default function ShortCodeCheckinPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="large" />
         <p style={styles.churchName}>{churchName}</p>
         <h1 style={styles.title}>{session.title}</h1>
         <p style={styles.subtitle}>{formatDate(session.sessionDate)}</p>

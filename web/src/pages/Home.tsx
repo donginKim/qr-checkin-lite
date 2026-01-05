@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useChurch } from '../context/ChurchContext'
+import Logo from '../components/Logo'
 
 export default function Home() {
   const { churchName } = useChurch()
@@ -8,7 +9,7 @@ export default function Home() {
     <div style={styles.container}>
       {/* 히어로 섹션 */}
       <div style={styles.hero}>
-        <div style={styles.crossLarge}>✝</div>
+        <Logo size="xlarge" style={{ marginBottom: 16 }} />
         <h1 style={styles.title}>{churchName} 출석 체크</h1>
         <p style={styles.subtitle}>
           주님 안에서 함께하는 우리<br />
@@ -55,13 +56,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   hero: {
     textAlign: 'center',
     marginBottom: 48,
-  },
-  crossLarge: {
-    fontSize: 72,
-    color: 'var(--color-secondary)',
-    marginBottom: 16,
-    textShadow: '0 4px 12px rgba(201, 162, 39, 0.3)',
-    animation: 'glow 3s ease-in-out infinite',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   title: {
     fontSize: 32,

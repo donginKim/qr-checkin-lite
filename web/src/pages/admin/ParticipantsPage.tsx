@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getParticipants, uploadParticipantsExcel, addParticipant, deleteParticipant } from '../../api/participants'
 import type { Participant, ImportResult } from '../../api/participants'
+import Logo from '../../components/Logo'
 
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState<Participant[]>([])
@@ -93,7 +94,7 @@ export default function ParticipantsPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="medium" />
         <h1 style={styles.title}>신자 관리</h1>
       </div>
 

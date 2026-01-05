@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useChurch } from '../../context/ChurchContext'
 import AdminPinGuard from '../../components/AdminPinGuard'
+import Logo from '../../components/Logo'
 
 export default function AdminDashboard() {
   const { churchName } = useChurch()
@@ -10,7 +11,7 @@ export default function AdminDashboard() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="large" />
         <h1 style={styles.title}>{churchName}</h1>
         <p style={styles.subtitle}>출석 관리 시스템</p>
       </div>
@@ -75,12 +76,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   header: {
     textAlign: 'center',
     marginBottom: 40,
-  },
-  cross: {
-    fontSize: 48,
-    color: 'var(--color-secondary)',
-    marginBottom: 8,
-    textShadow: '0 2px 4px rgba(201, 162, 39, 0.3)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 28,

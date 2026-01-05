@@ -1,21 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllSettings, updateSetting } from '../../api/settings'
+import { getAllSettings, updateSetting, uploadLogo } from '../../api/settings'
 import { useChurch } from '../../context/ChurchContext'
+import Logo from '../../components/Logo'
 
 export default function SettingsPage() {
   const { refresh } = useChurch()
   const [churchName, setChurchName] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   const [simpleCheckinMode, setSimpleCheckinMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function loadSettings() {
     setLoading(true)
     try {
       const settings = await getAllSettings()
       setChurchName(settings.church_name || '성당')
+      setLogoUrl(settings.logo_url || '')
       setSimpleCheckinMode(settings.simple_checkin_mode === 'true')
     } finally {
       setLoading(false)
@@ -36,6 +41,7 @@ export default function SettingsPage() {
     try {
       await updateSetting('church_name', churchName.trim())
       await updateSetting('simple_checkin_mode', simpleCheckinMode ? 'true' : 'false')
+      await updateSetting('logo_url', logoUrl)
       setSaved(true)
       refresh() // Context 새로고침
       setTimeout(() => setSaved(false), 3000)
@@ -46,11 +52,33 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      const url = await uploadLogo(file)
+      setLogoUrl(url)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '업로드 실패')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  function handleRemoveLogo() {
+    setLogoUrl('')
+  }
+
   return (
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="medium" />
         <h1 style={styles.title}>설정</h1>
       </div>
 
@@ -70,6 +98,50 @@ export default function SettingsPage() {
             />
             <p style={styles.hint}>
               출석 체크 화면과 관리자 페이지에 표시됩니다.
+            </p>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>로고 이미지</label>
+            <div style={styles.logoSection}>
+              <div style={styles.logoPreview}>
+                {logoUrl ? (
+                  <img src={logoUrl} alt="로고" style={styles.logoImage} />
+                ) : (
+                  <div style={styles.logoPlaceholder}>✝</div>
+                )}
+              </div>
+              <div style={styles.logoActions}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  style={styles.uploadButton}
+                >
+                  {uploading ? '업로드 중...' : '📷 이미지 선택'}
+                </button>
+                {logoUrl && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={handleRemoveLogo}
+                    style={styles.removeButton}
+                  >
+                    🗑️ 제거
+                  </button>
+                )}
+              </div>
+            </div>
+            <p style={styles.hint}>
+              십자가 대신 표시할 로고 이미지를 업로드하세요. (권장: 정사각형, 투명 배경 PNG)
             </p>
           </div>
 
@@ -130,11 +202,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   header: {
     textAlign: 'center',
     marginBottom: 32,
-  },
-  cross: {
-    fontSize: 36,
-    color: 'var(--color-secondary)',
-    marginBottom: 8,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 24,
@@ -175,6 +246,45 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '8px 0 0 0',
     fontSize: 13,
     color: 'var(--color-text-light)',
+  },
+  logoSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 20,
+  },
+  logoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    border: '2px dashed var(--color-border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--color-surface)',
+    overflow: 'hidden',
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+  },
+  logoPlaceholder: {
+    fontSize: 40,
+    color: 'var(--color-secondary)',
+  },
+  logoActions: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 8,
+  },
+  uploadButton: {
+    padding: '8px 16px',
+    fontSize: 14,
+  },
+  removeButton: {
+    padding: '8px 16px',
+    fontSize: 14,
+    color: '#e74c3c',
   },
   toggleGroup: {
     display: 'flex',

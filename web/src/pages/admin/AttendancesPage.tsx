@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAttendances, downloadAttendancesExcel } from '../../api/attendance'
 import type { AttendanceRecord } from '../../api/attendance'
+import Logo from '../../components/Logo'
 
 // 전화번호 포맷팅
 function formatPhoneDisplay(phone: string): string {
@@ -43,7 +44,7 @@ export default function AttendancesPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="medium" />
         <h1 style={styles.title}>출석 내역</h1>
       </div>
 

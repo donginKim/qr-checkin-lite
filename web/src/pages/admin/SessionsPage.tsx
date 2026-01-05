@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSessions, createSession, deleteSession } from '../../api/sessions'
 import type { SessionResponse } from '../../api/sessions'
+import Logo from '../../components/Logo'
 
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<SessionResponse[]>([])
@@ -68,7 +69,7 @@ export default function SessionsPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.cross}>✝</div>
+        <Logo size="medium" />
         <h1 style={styles.title}>세션 관리</h1>
         <p style={styles.subtitle}>출석 체크 세션을 생성하고 관리합니다</p>
       </div>
