@@ -32,4 +32,6 @@ INSERT OR IGNORE INTO attendances (session_id, session_title, participant_id, na
 
 -- 성당 이름 설정
 INSERT OR REPLACE INTO settings (key, value) VALUES ('church_name', '성요셉 성당');
+-- 간편 체크인 모드 (기본값: off)
+INSERT OR REPLACE INTO settings (key, value) VALUES ('simple_checkin_mode', 'false');
 

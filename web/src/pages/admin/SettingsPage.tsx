@@ -6,6 +6,7 @@ import { useChurch } from '../../context/ChurchContext'
 export default function SettingsPage() {
   const { refresh } = useChurch()
   const [churchName, setChurchName] = useState('')
+  const [simpleCheckinMode, setSimpleCheckinMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -15,6 +16,7 @@ export default function SettingsPage() {
     try {
       const settings = await getAllSettings()
       setChurchName(settings.church_name || '성당')
+      setSimpleCheckinMode(settings.simple_checkin_mode === 'true')
     } finally {
       setLoading(false)
     }
@@ -33,6 +35,7 @@ export default function SettingsPage() {
 
     try {
       await updateSetting('church_name', churchName.trim())
+      await updateSetting('simple_checkin_mode', simpleCheckinMode ? 'true' : 'false')
       setSaved(true)
       refresh() // Context 새로고침
       setTimeout(() => setSaved(false), 3000)
@@ -68,6 +71,34 @@ export default function SettingsPage() {
             <p style={styles.hint}>
               출석 체크 화면과 관리자 페이지에 표시됩니다.
             </p>
+          </div>
+
+          <h3 style={{ ...styles.cardTitle, marginTop: 32 }}>체크인 설정</h3>
+
+          <div style={styles.toggleGroup}>
+            <div style={styles.toggleInfo}>
+              <label style={styles.label}>간편 체크인 모드</label>
+              <p style={styles.hint}>
+                활성화 시 이름 검색 후 선택만으로 출석 완료 (전화번호 입력 생략)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSimpleCheckinMode(!simpleCheckinMode)}
+              style={{
+                ...styles.toggle,
+                background: simpleCheckinMode
+                  ? 'var(--color-primary)'
+                  : 'var(--color-border)',
+              }}
+            >
+              <span
+                style={{
+                  ...styles.toggleKnob,
+                  transform: simpleCheckinMode ? 'translateX(24px)' : 'translateX(0)',
+                }}
+              />
+            </button>
           </div>
 
           <div style={styles.actions}>
@@ -144,6 +175,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '8px 0 0 0',
     fontSize: 13,
     color: 'var(--color-text-light)',
+  },
+  toggleGroup: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 0',
+    marginBottom: 16,
+  },
+  toggleInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  toggle: {
+    width: 52,
+    height: 28,
+    borderRadius: 14,
+    padding: 2,
+    border: 'none',
+    cursor: 'pointer',
+    position: 'relative' as const,
+    transition: 'background 0.2s',
+    flexShrink: 0,
+  },
+  toggleKnob: {
+    display: 'block',
+    width: 24,
+    height: 24,
+    borderRadius: '50%',
+    background: 'white',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+    transition: 'transform 0.2s',
   },
   actions: {
     display: 'flex',

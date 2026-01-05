@@ -10,6 +10,18 @@ export async function getChurchName(): Promise<string> {
   }
 }
 
+// 간편 체크인 모드 조회
+export async function getSimpleCheckinMode(): Promise<boolean> {
+  try {
+    const resp = await fetch('/api/settings/simple-checkin-mode')
+    if (!resp.ok) return false
+    const data = await resp.json()
+    return data.enabled === true
+  } catch {
+    return false
+  }
+}
+
 // 모든 설정 조회
 export async function getAllSettings(): Promise<Record<string, string>> {
   const resp = await fetch('/api/admin/settings')

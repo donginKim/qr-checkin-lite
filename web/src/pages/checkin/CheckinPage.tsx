@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getQueryParam } from '../../lib/url'
 import { searchParticipants, submitCheckin } from '../../api/checkin'
 import type { ParticipantSearchItem } from '../../api/checkin'
+import { getSimpleCheckinMode } from '../../api/settings'
 
 export default function CheckinPage() {
   const sid = useMemo(() => getQueryParam('sid') ?? '', [])
   const token = useMemo(() => getQueryParam('t') ?? '', [])
 
+  const [simpleMode, setSimpleMode] = useState(false)
   const [searchName, setSearchName] = useState('')
   const [searchResults, setSearchResults] = useState<ParticipantSearchItem[]>([])
   const [searching, setSearching] = useState(false)
@@ -15,6 +17,10 @@ export default function CheckinPage() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  useEffect(() => {
+    getSimpleCheckinMode().then(setSimpleMode)
+  }, [])
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -34,10 +40,26 @@ export default function CheckinPage() {
     }
   }
 
-  function handleSelect(participant: ParticipantSearchItem) {
+  async function handleSelect(participant: ParticipantSearchItem) {
     setSelectedParticipant(participant)
     setPhone('')
     setResult(null)
+
+    // 간편 모드: 선택 즉시 출석 처리
+    if (simpleMode && sid && token) {
+      setLoading(true)
+      try {
+        const res = await submitCheckin({
+          sessionId: sid,
+          token,
+          participantId: participant.id,
+          phone: '', // 간편 모드에서는 빈 문자열
+        })
+        setResult(res)
+      } finally {
+        setLoading(false)
+      }
+    }
   }
 
   function handleReset() {
@@ -132,7 +154,7 @@ export default function CheckinPage() {
           </>
         )}
 
-        {/* Step 2: 전화번호 입력 */}
+        {/* Step 2: 전화번호 입력 (일반 모드) 또는 결과 확인 (간편 모드) */}
         {selectedParticipant && (
           <>
             <div style={styles.selectedCard}>
@@ -147,26 +169,36 @@ export default function CheckinPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCheckin} style={styles.checkinForm}>
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>전화번호를 입력하세요 (본인 확인)</label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="010-1234-5678"
-                  autoComplete="tel"
-                  style={styles.input}
-                />
-              </div>
+            {/* 일반 모드: 전화번호 입력 필요 */}
+            {!simpleMode && (
+              <form onSubmit={handleCheckin} style={styles.checkinForm}>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>전화번호를 입력하세요 (본인 확인)</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="010-1234-5678"
+                    autoComplete="tel"
+                    style={styles.input}
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={!phone.trim() || loading || !sid || !token}
-                style={styles.checkinButton}
-              >
-                {loading ? '처리 중...' : '✝ 출석하기'}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={!phone.trim() || loading || !sid || !token}
+                  style={styles.checkinButton}
+                >
+                  {loading ? '처리 중...' : '✝ 출석하기'}
+                </button>
+              </form>
+            )}
+
+            {/* 간편 모드: 처리 중 표시 */}
+            {simpleMode && loading && (
+              <div style={styles.processingMessage}>
+                처리 중...
+              </div>
+            )}
           </>
         )}
 
@@ -352,5 +384,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: 24,
     color: 'var(--color-text-light)',
     fontSize: 14,
+  },
+  processingMessage: {
+    textAlign: 'center',
+    padding: 24,
+    color: 'var(--color-text-light)',
+    fontSize: 16,
   },
 }

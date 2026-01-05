@@ -7,5 +7,5 @@ public record CheckinRequest(
         @NotBlank String sessionId,
         @NotBlank String token,
         @NotNull Long participantId,
-        @NotBlank String phone
+        String phone  // 간편 모드에서는 null 가능
 ) {}

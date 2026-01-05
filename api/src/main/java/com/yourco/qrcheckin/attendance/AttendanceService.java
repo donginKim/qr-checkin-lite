@@ -7,6 +7,7 @@ import com.yourco.qrcheckin.common.util.HashingService;
 import com.yourco.qrcheckin.common.util.PhoneNormalizer;
 import com.yourco.qrcheckin.participant.ParticipantRepository;
 import com.yourco.qrcheckin.session.SessionRepository;
+import com.yourco.qrcheckin.settings.SettingsRepository;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +22,18 @@ public class AttendanceService {
     private final ParticipantRepository participantRepo;
     private final AttendanceRepository attendanceRepo;
     private final SessionRepository sessionRepo;
+    private final SettingsRepository settingsRepo;
     private final HashingService hashing;
 
     public AttendanceService(ParticipantRepository participantRepo,
                              AttendanceRepository attendanceRepo,
                              SessionRepository sessionRepo,
+                             SettingsRepository settingsRepo,
                              HashingService hashing) {
         this.participantRepo = participantRepo;
         this.attendanceRepo = attendanceRepo;
         this.sessionRepo = sessionRepo;
+        this.settingsRepo = settingsRepo;
         this.hashing = hashing;
     }
 
@@ -61,16 +65,26 @@ public class AttendanceService {
 
         var participant = participantOpt.get();
 
-        // 2) 전화번호 검증(명단 선택 + 폰 입력이 같은 사람인지 확인)
-        String phoneNorm = PhoneNormalizer.normalize(req.phone());
-        if (phoneNorm.isBlank()) {
-            return new CheckinResult(false, "전화번호를 확인하세요.");
-        }
+        // 2) 간편 체크인 모드 확인
+        boolean simpleMode = settingsRepo.get("simple_checkin_mode")
+                .map("true"::equals)
+                .orElse(false);
 
-        String phoneHash = hashing.sha256(phoneNorm);
-        if (!phoneHash.equals(participant.phoneHash())) {
-            // 개인정보 노출을 줄이려면 상세 사유를 과하게 말하지 않는 게 안전
-            return new CheckinResult(false, "전화번호가 일치하지 않습니다.");
+        String phoneNorm;
+        if (simpleMode) {
+            // 간편 모드: 전화번호 검증 없이 마스킹된 번호 저장
+            phoneNorm = "***-****-" + participant.phoneLast4();
+        } else {
+            // 일반 모드: 전화번호 검증 필수
+            phoneNorm = PhoneNormalizer.normalize(req.phone() != null ? req.phone() : "");
+            if (phoneNorm.isBlank()) {
+                return new CheckinResult(false, "전화번호를 확인하세요.");
+            }
+
+            String phoneHash = hashing.sha256(phoneNorm);
+            if (!phoneHash.equals(participant.phoneHash())) {
+                return new CheckinResult(false, "전화번호가 일치하지 않습니다.");
+            }
         }
 
         // 3) 출석 기록 insert (UNIQUE(session_id, participant_id)로 중복 방지)

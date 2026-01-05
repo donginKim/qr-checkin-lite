@@ -21,6 +21,15 @@ public class SettingsController {
         return Map.of("churchName", name);
     }
 
+    // 공개 API - 간편 체크인 모드 조회
+    @GetMapping("/settings/simple-checkin-mode")
+    public Map<String, Object> getSimpleCheckinMode() {
+        boolean enabled = repo.get("simple_checkin_mode")
+                .map("true"::equals)
+                .orElse(false);
+        return Map.of("enabled", enabled);
+    }
+
     // 관리자 API - 모든 설정 조회
     @GetMapping("/admin/settings")
     public Map<String, String> getAllSettings() {
@@ -39,7 +48,7 @@ public class SettingsController {
         }
         
         // 허용된 키만 수정 가능
-        if (!key.equals("church_name")) {
+        if (!key.equals("church_name") && !key.equals("simple_checkin_mode")) {
             throw new IllegalArgumentException("Unknown setting key: " + key);
         }
         
