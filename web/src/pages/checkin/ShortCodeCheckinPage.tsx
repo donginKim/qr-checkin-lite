@@ -5,7 +5,6 @@ import type { SessionPublicInfo } from '../../api/sessions'
 import { searchParticipants, submitCheckin } from '../../api/checkin'
 import type { ParticipantSearchItem } from '../../api/checkin'
 import { useChurch } from '../../context/ChurchContext'
-import { getSimpleCheckinMode } from '../../api/settings'
 import Logo from '../../components/Logo'
 
 export default function ShortCodeCheckinPage() {
