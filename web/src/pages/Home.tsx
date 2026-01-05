@@ -7,12 +7,17 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
+      {/* 상단 글귀 */}
+      <div style={styles.topMotto}>
+        <span style={styles.mottoText}>面刑無我</span>
+        <span style={styles.mottoSub}>면형무아</span>
+      </div>
+
       {/* 히어로 섹션 */}
       <div style={styles.hero}>
         <Logo size="xlarge" style={{ marginBottom: 16 }} />
         <h1 style={styles.title}>{churchName} 출석 체크</h1>
         <p style={styles.subtitle}>
-          주님 안에서 함께하는 우리<br />
           출석 관리 시스템
         </p>
       </div>
@@ -32,13 +37,24 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* 푸터 */}
+      {/* 푸터 - 세 가지 덕목 */}
       <div style={styles.footer}>
-        <p style={styles.footerText}>
-          "두세 사람이 내 이름으로 모인 곳에는<br />
-          나도 그들 중에 있느니라"
-        </p>
-        <p style={styles.footerVerse}>- 마태복음 18:20</p>
+        <div style={styles.virtuesContainer}>
+          <div style={styles.virtue}>
+            <span style={styles.virtueHanja}>點省</span>
+            <span style={styles.virtueText}>점성</span>
+          </div>
+          <div style={styles.virtueDivider}>·</div>
+          <div style={styles.virtue}>
+            <span style={styles.virtueHanja}>沈默</span>
+            <span style={styles.virtueText}>침묵</span>
+          </div>
+          <div style={styles.virtueDivider}>·</div>
+          <div style={styles.virtue}>
+            <span style={styles.virtueHanja}>大越</span>
+            <span style={styles.virtueText}>대월</span>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -48,10 +64,30 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: 600,
     margin: '0 auto',
-    padding: '60px 20px',
+    padding: '40px 20px',
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
+  },
+  topMotto: {
+    textAlign: 'center',
+    marginBottom: 32,
+    padding: '20px 0',
+    borderBottom: '1px solid var(--color-border)',
+  },
+  mottoText: {
+    display: 'block',
+    fontSize: 36,
+    fontWeight: 300,
+    letterSpacing: 16,
+    color: 'var(--color-primary)',
+    marginBottom: 8,
+  },
+  mottoSub: {
+    display: 'block',
+    fontSize: 14,
+    color: 'var(--color-text-light)',
+    letterSpacing: 8,
   },
   hero: {
     textAlign: 'center',
@@ -61,15 +97,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
   },
   title: {
-    fontSize: 32,
-    margin: '0 0 16px 0',
+    fontSize: 28,
+    margin: '0 0 12px 0',
     color: 'var(--color-primary)',
     fontWeight: 700,
   },
   subtitle: {
     margin: 0,
     color: 'var(--color-text-light)',
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 1.8,
   },
   cardGrid: {
@@ -110,16 +146,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingTop: 48,
     textAlign: 'center',
   },
-  footerText: {
-    fontStyle: 'italic',
-    color: 'var(--color-text-light)',
-    lineHeight: 1.8,
-    margin: '0 0 8px 0',
+  virtuesContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 24,
+    padding: '24px 0',
+    borderTop: '1px solid var(--color-border)',
   },
-  footerVerse: {
+  virtue: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+  },
+  virtueHanja: {
+    fontSize: 24,
+    fontWeight: 300,
+    color: 'var(--color-primary)',
+    letterSpacing: 4,
+  },
+  virtueText: {
+    fontSize: 13,
+    color: 'var(--color-text-light)',
+    letterSpacing: 2,
+  },
+  virtueDivider: {
+    fontSize: 20,
     color: 'var(--color-secondary)',
-    fontSize: 14,
-    fontWeight: 600,
-    margin: 0,
+    fontWeight: 300,
   },
 }
