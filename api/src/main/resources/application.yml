@@ -5,6 +5,8 @@ app:
     checkin-base-url: "${CHECKIN_BASE_URL:http://localhost:5173}"
   attendance:
     retention-days: ${ATTENDANCE_RETENTION_DAYS:0}  # 0 = 영구 보관, 30 = 30일 후 삭제
+  admin:
+    pin: "${ADMIN_PIN:1234}"  # 관리자 페이지 4자리 비밀번호
 
 spring:
   datasource:

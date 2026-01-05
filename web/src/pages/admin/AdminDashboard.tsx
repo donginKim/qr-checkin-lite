@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useChurch } from '../../context/ChurchContext'
+import AdminPinGuard from '../../components/AdminPinGuard'
 
 export default function AdminDashboard() {
   const { churchName } = useChurch()
 
   return (
+    <AdminPinGuard>
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
@@ -59,6 +61,7 @@ export default function AdminDashboard() {
         </Link>
       </div>
     </div>
+    </AdminPinGuard>
   )
 }
 
