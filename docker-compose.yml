@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     image: steve1145/qr-checkin-api:latest
