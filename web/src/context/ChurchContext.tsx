@@ -4,21 +4,18 @@ import { getChurchName, getAllSettings } from '../api/settings'
 
 type ChurchContextType = {
   churchName: string
-  logoUrl: string
   loading: boolean
   refresh: () => void
 }
 
 const ChurchContext = createContext<ChurchContextType>({
   churchName: '구역',
-  logoUrl: '',
   loading: true,
   refresh: () => {},
 })
 
 export function ChurchProvider({ children }: { children: ReactNode }) {
   const [churchName, setChurchName] = useState('구역')
-  const [logoUrl, setLogoUrl] = useState('')
   const [loading, setLoading] = useState(true)
 
   async function loadSettings() {
@@ -26,7 +23,6 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
     try {
       const settings = await getAllSettings()
       setChurchName(settings.church_name || '구역')
-      setLogoUrl(settings.logo_url || '')
     } catch {
       // fallback
       const name = await getChurchName()
@@ -41,7 +37,7 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <ChurchContext.Provider value={{ churchName, logoUrl, loading, refresh: loadSettings }}>
+    <ChurchContext.Provider value={{ churchName, loading, refresh: loadSettings }}>
       {children}
     </ChurchContext.Provider>
   )
