@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useChurch } from '../context/ChurchContext'
+import Logo from '../components/Logo'
 
 export default function Home() {
   const { churchName } = useChurch()
@@ -13,6 +14,7 @@ export default function Home() {
 
       {/* 히어로 섹션 */}
       <div style={styles.hero}>
+        <Logo size="xlarge" style={{ marginBottom: 16 }} />
         <h1 style={styles.title}>{churchName} 출석 체크</h1>
         <p style={styles.subtitle}>
           출석 관리 시스템
