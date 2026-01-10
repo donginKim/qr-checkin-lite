@@ -6,7 +6,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -82,5 +84,17 @@ public class ParticipantRepository {
 
     public void deleteById(long id) {
         jdbc.update("DELETE FROM participants WHERE id = ?", id);
+    }
+
+    public Map<String, Integer> countByDistrict() {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        jdbc.query(
+                "SELECT COALESCE(NULLIF(district, ''), '미지정') as district, COUNT(*) as cnt " +
+                "FROM participants GROUP BY COALESCE(NULLIF(district, ''), '미지정') ORDER BY district",
+                (rs) -> {
+                    result.put(rs.getString("district"), rs.getInt("cnt"));
+                }
+        );
+        return result;
     }
 }

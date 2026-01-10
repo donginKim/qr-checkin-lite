@@ -83,3 +83,10 @@ export async function uploadParticipantsExcel(
   return resp.json()
 }
 
+
+// 구역별 통계 조회
+export async function getDistrictStats(): Promise<Record<string, number>> {
+  const resp = await fetch('/api/admin/participants/stats/by-district')
+  if (!resp.ok) return {}
+  return resp.json()
+}

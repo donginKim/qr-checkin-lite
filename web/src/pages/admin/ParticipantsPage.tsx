@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { getParticipants, uploadParticipantsExcel, addParticipant, deleteParticipant } from '../../api/participants'
+import { getParticipants, uploadParticipantsExcel, addParticipant, deleteParticipant, getDistrictStats } from '../../api/participants'
 import type { Participant, ImportResult } from '../../api/participants'
 import Logo from '../../components/Logo'
 
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState<Participant[]>([])
+  const [districtStats, setDistrictStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [replaceAll, setReplaceAll] = useState(false)
@@ -25,8 +26,12 @@ export default function ParticipantsPage() {
   async function loadParticipants() {
     setLoading(true)
     try {
-      const data = await getParticipants()
+      const [data, stats] = await Promise.all([
+        getParticipants(),
+        getDistrictStats()
+      ])
       setParticipants(data)
+      setDistrictStats(stats)
     } finally {
       setLoading(false)
     }
@@ -224,6 +229,21 @@ export default function ParticipantsPage() {
           🔄 새로고침
         </button>
       </div>
+
+      {/* 구역별 통계 */}
+      {Object.keys(districtStats).length > 0 && (
+        <div style={styles.districtStatsCard}>
+          <h3 style={styles.districtStatsTitle}>📊 구역별 현황</h3>
+          <div style={styles.districtGrid}>
+            {Object.entries(districtStats).map(([district, count]) => (
+              <div key={district} style={styles.districtItem}>
+                <span style={styles.districtName}>{district}</span>
+                <span style={styles.districtCount}>{count}명</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 테이블 */}
       <div style={styles.tableCard}>
@@ -441,6 +461,43 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   statsValue: {
     fontSize: 24,
+    fontWeight: 700,
+    color: 'var(--color-primary)',
+  },
+  districtStatsCard: {
+    marginBottom: 20,
+    padding: 20,
+    background: 'white',
+    borderRadius: 12,
+    border: '1px solid var(--color-border)',
+    boxShadow: '0 4px 20px rgba(61, 41, 20, 0.08)',
+  },
+  districtStatsTitle: {
+    margin: '0 0 16px 0',
+    fontSize: 16,
+    color: 'var(--color-primary)',
+  },
+  districtGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+    gap: 12,
+  },
+  districtItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 12,
+    background: 'var(--color-surface)',
+    borderRadius: 8,
+    border: '1px solid var(--color-border)',
+  },
+  districtName: {
+    fontSize: 14,
+    color: 'var(--color-text-light)',
+    marginBottom: 4,
+  },
+  districtCount: {
+    fontSize: 20,
     fontWeight: 700,
     color: 'var(--color-primary)',
   },

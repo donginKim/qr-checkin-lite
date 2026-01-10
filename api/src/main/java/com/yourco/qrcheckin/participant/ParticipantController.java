@@ -14,15 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/participants")
 public class ParticipantController {
 
     private final ParticipantService service;
+    private final ParticipantRepository repository;
 
-    public ParticipantController(ParticipantService service) {
+    public ParticipantController(ParticipantService service, ParticipantRepository repository) {
         this.service = service;
+        this.repository = repository;
     }
 
     @GetMapping
@@ -55,6 +58,11 @@ public class ParticipantController {
     @GetMapping("/count")
     public int count() {
         return service.countParticipants();
+    }
+
+    @GetMapping("/stats/by-district")
+    public Map<String, Integer> statsByDistrict() {
+        return repository.countByDistrict();
     }
 
     @GetMapping("/template")
