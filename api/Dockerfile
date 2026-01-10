@@ -9,8 +9,8 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# 데이터 디렉토리 생성
-RUN mkdir -p /app/data
+# 데이터 디렉토리 생성 (uploads 포함)
+RUN mkdir -p /app/data/uploads
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 
