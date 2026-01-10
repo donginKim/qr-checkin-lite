@@ -108,8 +108,12 @@ export default function ParticipantsPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <Logo size="medium" />
-        <h1 style={styles.title}>회원 관리</h1>
+        <Link to="/admin" style={styles.backLink}>← 대시보드</Link>
+        <div style={styles.headerCenter}>
+          <Logo size="medium" />
+          <h1 style={styles.title}>회원 관리</h1>
+        </div>
+        <div style={styles.headerRight} />
       </div>
 
       {/* 회원 추가 */}
@@ -316,16 +320,42 @@ const styles: { [key: string]: React.CSSProperties } = {
     minHeight: '100vh',
   },
   header: {
-    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 32,
+    position: 'sticky' as const,
+    top: 0,
+    background: 'var(--color-background)',
+    padding: '16px 0',
+    zIndex: 100,
+    borderBottom: '1px solid var(--color-border)',
+    margin: '-40px -20px 32px -20px',
+    paddingLeft: 20,
+    paddingRight: 20,
   },
-  cross: {
-    fontSize: 36,
-    color: 'var(--color-secondary)',
-    marginBottom: 8,
+  backLink: {
+    color: 'var(--color-text-light)',
+    textDecoration: 'none',
+    fontSize: 14,
+    padding: '8px 12px',
+    borderRadius: 8,
+    background: 'white',
+    border: '1px solid var(--color-border)',
+    transition: 'all 0.2s',
+    whiteSpace: 'nowrap' as const,
+  },
+  headerCenter: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: 4,
+  },
+  headerRight: {
+    width: 90, // backLink와 균형 맞추기
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     margin: 0,
     color: 'var(--color-primary)',
   },
