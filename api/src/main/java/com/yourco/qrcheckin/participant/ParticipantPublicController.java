@@ -25,7 +25,7 @@ public class ParticipantPublicController {
 
         int safeLimit = Math.min(Math.max(limit, 1), 20);
         return repo.searchByNamePrefix(keyword, safeLimit).stream()
-                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4()))
+                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4(), p.baptismalName(), p.district()))
                 .toList();
     }
 }

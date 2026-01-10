@@ -62,7 +62,7 @@ public class ParticipantService {
                 continue;
             }
 
-            repo.insert(name, phoneHash, last4);
+            repo.insert(name, phoneHash, last4, r.baptismalName(), r.district());
             inserted++;
         }
 
@@ -75,7 +75,7 @@ public class ParticipantService {
 
     public List<ParticipantSearchItem> findAllParticipants() {
         return repo.findAll().stream()
-                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4()))
+                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4(), p.baptismalName(), p.district()))
                 .toList();
     }
 
@@ -96,16 +96,19 @@ public class ParticipantService {
 
         // 중복 체크
         if (repo.findByNameAndPhoneHash(name, phoneHash).isPresent()) {
-            throw new IllegalArgumentException("이미 등록된 신자입니다.");
+            throw new IllegalArgumentException("이미 등록된 회원입니다.");
         }
 
-        repo.insert(name, phoneHash, last4);
+        String baptismalName = req.baptismalName() != null ? req.baptismalName().trim() : "";
+        String district = req.district() != null ? req.district().trim() : "";
+
+        repo.insert(name, phoneHash, last4, baptismalName, district);
         
-        // 방금 추가된 신자 조회해서 반환
+        // 방금 추가된 회원 조회해서 반환
         var participant = repo.findByNameAndPhoneHash(name, phoneHash)
-                .orElseThrow(() -> new RuntimeException("신자 등록 실패"));
+                .orElseThrow(() -> new RuntimeException("회원 등록 실패"));
         
-        return new ParticipantSearchItem(participant.id(), participant.name(), participant.phoneLast4());
+        return new ParticipantSearchItem(participant.id(), participant.name(), participant.phoneLast4(), participant.baptismalName(), participant.district());
     }
 
     @Transactional

@@ -17,6 +17,8 @@ export default function ParticipantsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
+  const [newBaptismalName, setNewBaptismalName] = useState('')
+  const [newDistrict, setNewDistrict] = useState('')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -67,9 +69,16 @@ export default function ParticipantsPage() {
     setAddError(null)
 
     try {
-      await addParticipant({ name: newName.trim(), phone: newPhone.trim() })
+      await addParticipant({ 
+        name: newName.trim(), 
+        phone: newPhone.trim(),
+        baptismalName: newBaptismalName.trim() || undefined,
+        district: newDistrict.trim() || undefined,
+      })
       setNewName('')
       setNewPhone('')
+      setNewBaptismalName('')
+      setNewDistrict('')
       setShowAddForm(false)
       loadParticipants()
     } catch (err) {
@@ -111,13 +120,25 @@ export default function ParticipantsPage() {
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="이름"
+                placeholder="이름 *"
                 style={styles.addInput}
               />
               <input
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
-                placeholder="전화번호 (010-1234-5678)"
+                placeholder="전화번호 * (010-1234-5678)"
+                style={styles.addInput}
+              />
+              <input
+                value={newBaptismalName}
+                onChange={(e) => setNewBaptismalName(e.target.value)}
+                placeholder="세례명"
+                style={styles.addInput}
+              />
+              <input
+                value={newDistrict}
+                onChange={(e) => setNewDistrict(e.target.value)}
+                placeholder="구역"
                 style={styles.addInput}
               />
             </div>
@@ -180,7 +201,7 @@ export default function ParticipantsPage() {
         )}
 
         <div style={styles.uploadHint}>
-          💡 Excel 형식: 1열-이름, 2열-전화번호 (첫 행은 헤더로 스킵)
+          💡 Excel 형식: A열-이름, B열-전화번호, C열-세례명, D열-구역 (첫 행은 헤더로 스킵)
         </div>
       </div>
 
@@ -212,10 +233,12 @@ export default function ParticipantsPage() {
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 60 }}>#</th>
+                  <th style={{ width: 50 }}>#</th>
                   <th>이름</th>
+                  <th>세례명</th>
                   <th>전화번호</th>
-                  <th style={{ width: 80 }}>관리</th>
+                  <th>구역</th>
+                  <th style={{ width: 70 }}>관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -223,10 +246,12 @@ export default function ParticipantsPage() {
                   <tr key={p.id}>
                     <td style={{ color: 'var(--color-text-light)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{p.name}</td>
+                    <td style={{ color: 'var(--color-text-light)' }}>{p.baptismalName || '-'}</td>
                     <td>
                       <span style={{ color: 'var(--color-text-light)' }}>***-****-</span>
                       <span style={{ fontWeight: 500 }}>{p.phoneLast4}</span>
                     </td>
+                    <td style={{ color: 'var(--color-text-light)' }}>{p.district || '-'}</td>
                     <td>
                       <button
                         onClick={() => handleDelete(p.id, p.name)}

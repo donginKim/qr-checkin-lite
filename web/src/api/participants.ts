@@ -3,6 +3,8 @@ export type Participant = {
   id: number
   name: string
   phoneLast4: string
+  baptismalName: string
+  district: string
 }
 
 // 참가자 목록 조회
@@ -23,6 +25,8 @@ export async function getParticipantCount(): Promise<number> {
 export type ParticipantCreateRequest = {
   name: string
   phone: string
+  baptismalName?: string
+  district?: string
 }
 
 export async function addParticipant(req: ParticipantCreateRequest): Promise<Participant> {

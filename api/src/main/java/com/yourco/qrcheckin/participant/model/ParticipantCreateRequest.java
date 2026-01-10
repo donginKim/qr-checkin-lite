@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public record ParticipantCreateRequest(
     @NotBlank String name,
-    @NotBlank String phone
+    @NotBlank String phone,
+    String baptismalName,
+    String district
 ) {}
 

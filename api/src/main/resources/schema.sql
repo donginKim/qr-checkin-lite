@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS participants (
   name          TEXT NOT NULL,
   phone_hash    TEXT NOT NULL,
   phone_last4   TEXT NOT NULL,
+  baptismal_name TEXT DEFAULT '',
+  district      TEXT DEFAULT '',
   created_at    TEXT NOT NULL
 );
 
@@ -45,3 +47,6 @@ CREATE TABLE IF NOT EXISTS attendances (
   user_agent     TEXT,
   UNIQUE(session_id, participant_id)
 );
+
+-- 기존 테이블에 새 컬럼 추가 (이미 있으면 무시)
+-- SQLite는 IF NOT EXISTS를 지원하지 않으므로 에러 발생 시 무시됨

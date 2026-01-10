@@ -4,5 +4,7 @@ public record Participant(long id,
                           String name,
                           String phoneHash,
                           String phoneLast4,
+                          String baptismalName,
+                          String district,
                           String createdAt) {
 }
