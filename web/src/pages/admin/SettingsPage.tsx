@@ -19,7 +19,7 @@ export default function SettingsPage() {
     setLoading(true)
     try {
       const settings = await getAllSettings()
-      setChurchName(settings.church_name || '성당')
+      setChurchName(settings.church_name || '구역')
       setLogoUrl(settings.logo_url || '')
       setSimpleCheckinMode(settings.simple_checkin_mode === 'true')
     } finally {
@@ -89,11 +89,11 @@ export default function SettingsPage() {
           <h3 style={styles.cardTitle}>기본 정보</h3>
 
           <div style={styles.inputGroup}>
-            <label style={styles.label}>성당 이름</label>
+            <label style={styles.label}>구역 이름</label>
             <input
               value={churchName}
               onChange={(e) => setChurchName(e.target.value)}
-              placeholder="예: OO성당, OO본당"
+              placeholder="예: OO구역"
               style={styles.input}
             />
             <p style={styles.hint}>
@@ -108,7 +108,7 @@ export default function SettingsPage() {
                 {logoUrl ? (
                   <img src={logoUrl} alt="로고" style={styles.logoImage} />
                 ) : (
-                  <div style={styles.logoPlaceholder}>✝</div>
+                  <div style={styles.logoPlaceholder}>📷</div>
                 )}
               </div>
               <div style={styles.logoActions}>
@@ -141,7 +141,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <p style={styles.hint}>
-              십자가 대신 표시할 로고 이미지를 업로드하세요. (권장: 정사각형, 투명 배경 PNG)
+              로고 이미지를 업로드하세요. (권장: 정사각형, 투명 배경 PNG)
             </p>
           </div>
 

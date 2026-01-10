@@ -10,14 +10,14 @@ type ChurchContextType = {
 }
 
 const ChurchContext = createContext<ChurchContextType>({
-  churchName: '성당',
+  churchName: '구역',
   logoUrl: '',
   loading: true,
   refresh: () => {},
 })
 
 export function ChurchProvider({ children }: { children: ReactNode }) {
-  const [churchName, setChurchName] = useState('성당')
+  const [churchName, setChurchName] = useState('구역')
   const [logoUrl, setLogoUrl] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -25,7 +25,7 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     try {
       const settings = await getAllSettings()
-      setChurchName(settings.church_name || '성당')
+      setChurchName(settings.church_name || '구역')
       setLogoUrl(settings.logo_url || '')
     } catch {
       // fallback

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap');
 
 :root {
-  /* 성당 테마 색상 */
+  /* 테마 색상 */
   --color-primary: #722F37;        /* 버건디 */
   --color-primary-dark: #5A252C;
   --color-secondary: #C9A227;      /* 골드 */

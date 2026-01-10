@@ -39,8 +39,8 @@ export default function AdminDashboard() {
         <Link to="/admin/participants" style={styles.card}>
           <div style={styles.cardIcon}>👥</div>
           <div style={styles.cardContent}>
-            <div style={styles.cardTitle}>신자 관리</div>
-            <div style={styles.cardDesc}>신자 목록 및 Excel 업로드</div>
+            <div style={styles.cardTitle}>회원 관리</div>
+            <div style={styles.cardDesc}>회원 목록 및 Excel 업로드</div>
           </div>
           <div style={styles.cardArrow}>→</div>
         </Link>
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
           <div style={styles.cardIcon}>⚙️</div>
           <div style={styles.cardContent}>
             <div style={styles.cardTitle}>설정</div>
-            <div style={styles.cardDesc}>성당 이름 및 시스템 설정</div>
+            <div style={styles.cardDesc}>구역 이름 및 시스템 설정</div>
           </div>
           <div style={styles.cardArrow}>→</div>
         </Link>

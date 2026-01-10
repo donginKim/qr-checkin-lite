@@ -12,17 +12,9 @@ const sizes = {
   xlarge: 96,
 }
 
-const fontSizes = {
-  small: 36,
-  medium: 48,
-  large: 64,
-  xlarge: 96,
-}
-
 export default function Logo({ size = 'medium', style }: LogoProps) {
   const { logoUrl } = useChurch()
   const pixelSize = sizes[size]
-  const fontSize = fontSizes[size]
 
   if (logoUrl) {
     return (
@@ -39,19 +31,7 @@ export default function Logo({ size = 'medium', style }: LogoProps) {
     )
   }
 
-  // 로고가 없으면 십자가 표시
-  return (
-    <div
-      style={{
-        fontSize,
-        color: 'var(--color-secondary)',
-        textShadow: '0 2px 4px rgba(201, 162, 39, 0.3)',
-        lineHeight: 1,
-        ...style,
-      }}
-    >
-      ✝
-    </div>
-  )
+  // 로고가 없으면 빈 공간
+  return null
 }
 

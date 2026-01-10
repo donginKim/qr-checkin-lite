@@ -1,12 +1,12 @@
-// 성당 이름 조회
+// 구역 이름 조회
 export async function getChurchName(): Promise<string> {
   try {
     const resp = await fetch('/api/settings/church-name')
-    if (!resp.ok) return '성당'
+    if (!resp.ok) return '구역'
     const data = await resp.json()
-    return data.churchName || '성당'
+    return data.churchName || '구역'
   } catch {
-    return '성당'
+    return '구역'
   }
 }
 

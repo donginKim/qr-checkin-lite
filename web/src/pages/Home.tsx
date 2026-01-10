@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { useChurch } from '../context/ChurchContext'
-import Logo from '../components/Logo'
 
 export default function Home() {
   const { churchName } = useChurch()
@@ -9,13 +8,11 @@ export default function Home() {
     <div style={styles.container}>
       {/* 상단 글귀 */}
       <div style={styles.topMotto}>
-        <span style={styles.mottoText}>面刑無我</span>
-        <span style={styles.mottoSub}>면형무아</span>
+        <span style={styles.mottoText}>면형무아</span>
       </div>
 
       {/* 히어로 섹션 */}
       <div style={styles.hero}>
-        <Logo size="xlarge" style={{ marginBottom: 16 }} />
         <h1 style={styles.title}>{churchName} 출석 체크</h1>
         <p style={styles.subtitle}>
           출석 관리 시스템
@@ -33,27 +30,18 @@ export default function Home() {
         <Link to="/admin" style={styles.card}>
           <div style={styles.cardIcon}>⚙️</div>
           <div style={styles.cardTitle}>관리자</div>
-          <div style={styles.cardDesc}>출석 내역 및 신자 관리</div>
+          <div style={styles.cardDesc}>출석 내역 및 회원 관리</div>
         </Link>
       </div>
 
       {/* 푸터 - 세 가지 덕목 */}
       <div style={styles.footer}>
         <div style={styles.virtuesContainer}>
-          <div style={styles.virtue}>
-            <span style={styles.virtueHanja}>點省</span>
-            <span style={styles.virtueText}>점성</span>
-          </div>
+          <span style={styles.virtueText}>점성</span>
           <div style={styles.virtueDivider}>·</div>
-          <div style={styles.virtue}>
-            <span style={styles.virtueHanja}>沈默</span>
-            <span style={styles.virtueText}>침묵</span>
-          </div>
+          <span style={styles.virtueText}>침묵</span>
           <div style={styles.virtueDivider}>·</div>
-          <div style={styles.virtue}>
-            <span style={styles.virtueHanja}>大越</span>
-            <span style={styles.virtueText}>대월</span>
-          </div>
+          <span style={styles.virtueText}>대월</span>
         </div>
       </div>
     </div>
@@ -77,17 +65,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   mottoText: {
     display: 'block',
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 300,
-    letterSpacing: 16,
+    letterSpacing: 12,
     color: 'var(--color-primary)',
-    marginBottom: 8,
-  },
-  mottoSub: {
-    display: 'block',
-    fontSize: 14,
-    color: 'var(--color-text-light)',
-    letterSpacing: 8,
   },
   hero: {
     textAlign: 'center',
@@ -154,22 +135,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '24px 0',
     borderTop: '1px solid var(--color-border)',
   },
-  virtue: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
-  },
-  virtueHanja: {
-    fontSize: 24,
-    fontWeight: 300,
+  virtueText: {
+    fontSize: 16,
+    fontWeight: 500,
     color: 'var(--color-primary)',
     letterSpacing: 4,
-  },
-  virtueText: {
-    fontSize: 13,
-    color: 'var(--color-text-light)',
-    letterSpacing: 2,
   },
   virtueDivider: {
     fontSize: 20,

@@ -13,7 +13,7 @@ export default function ParticipantsPage() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // 신자 추가 폼
+  // 회원 추가 폼
   const [showAddForm, setShowAddForm] = useState(false)
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
@@ -38,7 +38,7 @@ export default function ParticipantsPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (replaceAll && !confirm('⚠️ 기존 신자 명단을 모두 삭제하고 새로 등록합니다. 계속하시겠습니까?')) {
+    if (replaceAll && !confirm('⚠️ 기존 회원 명단을 모두 삭제하고 새로 등록합니다. 계속하시겠습니까?')) {
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
@@ -80,7 +80,7 @@ export default function ParticipantsPage() {
   }
 
   async function handleDelete(id: number, name: string) {
-    if (!confirm(`"${name}" 신자를 삭제하시겠습니까?`)) return
+    if (!confirm(`"${name}" 회원을 삭제하시겠습니까?`)) return
 
     try {
       await deleteParticipant(id)
@@ -95,18 +95,18 @@ export default function ParticipantsPage() {
       {/* 헤더 */}
       <div style={styles.header}>
         <Logo size="medium" />
-        <h1 style={styles.title}>신자 관리</h1>
+        <h1 style={styles.title}>회원 관리</h1>
       </div>
 
-      {/* 신자 추가 */}
+      {/* 회원 추가 */}
       <div style={styles.addSection}>
         {!showAddForm ? (
           <button onClick={() => setShowAddForm(true)} style={styles.addButton}>
-            + 신자 추가
+            + 회원 추가
           </button>
         ) : (
           <form onSubmit={handleAddParticipant} style={styles.addForm}>
-            <h3 style={styles.addFormTitle}>신자 추가</h3>
+            <h3 style={styles.addFormTitle}>회원 추가</h3>
             <div style={styles.addFormGrid}>
               <input
                 value={newName}
@@ -187,7 +187,7 @@ export default function ParticipantsPage() {
       {/* 통계 */}
       <div style={styles.statsCard}>
         <div style={styles.statsLeft}>
-          <span style={styles.statsLabel}>총 신자</span>
+          <span style={styles.statsLabel}>총 회원</span>
           <span style={styles.statsValue}>{participants.length}명</span>
         </div>
         <button onClick={loadParticipants} className="secondary" disabled={loading}>
@@ -202,9 +202,9 @@ export default function ParticipantsPage() {
         ) : participants.length === 0 ? (
           <div style={styles.emptyState}>
             <span style={{ fontSize: 48, marginBottom: 16 }}>👥</span>
-            <p>등록된 신자가 없습니다.</p>
+            <p>등록된 회원이 없습니다.</p>
             <p style={{ fontSize: 14, color: 'var(--color-text-light)' }}>
-              위에서 신자를 추가하거나 Excel 파일을 업로드해주세요.
+              위에서 회원을 추가하거나 Excel 파일을 업로드해주세요.
             </p>
           </div>
         ) : (
