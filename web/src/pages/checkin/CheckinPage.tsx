@@ -217,6 +217,11 @@ export default function CheckinPage() {
               {result.ok ? '출석이 완료되었습니다' : '출석 실패'}
             </div>
             <div style={styles.resultText}>{result.message}</div>
+            {result.ok && selectedParticipant?.baptismalName && (
+              <div style={styles.greetingText}>
+                "{selectedParticipant.baptismalName}" 님 반갑습니다!
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -377,6 +382,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   resultText: {
     color: 'var(--color-text-light)',
+  },
+  greetingText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: 600,
+    color: 'var(--color-primary)',
   },
   hint: {
     textAlign: 'center',

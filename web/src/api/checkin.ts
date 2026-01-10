@@ -3,6 +3,8 @@ export type ParticipantSearchItem = {
   id: number
   name: string
   phoneLast4: string
+  baptismalName: string
+  district: string
 }
 
 // 체크인 요청
