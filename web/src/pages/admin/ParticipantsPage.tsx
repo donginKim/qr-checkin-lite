@@ -157,7 +157,16 @@ export default function ParticipantsPage() {
 
       {/* Excel 업로드 */}
       <div style={styles.uploadCard}>
-        <h3 style={styles.uploadTitle}>📤 Excel 파일 업로드</h3>
+        <div style={styles.uploadHeader}>
+          <h3 style={styles.uploadTitle}>📤 Excel 파일 업로드</h3>
+          <a
+            href="/api/admin/participants/template"
+            download="participants_template.xlsx"
+            style={styles.templateLink}
+          >
+            📥 템플릿 다운로드
+          </a>
+        </div>
         
         <div style={styles.uploadForm}>
           <input
@@ -350,10 +359,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 20px rgba(61, 41, 20, 0.08)',
     marginBottom: 24,
   },
+  uploadHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   uploadTitle: {
-    margin: '0 0 16px 0',
+    margin: 0,
     fontSize: 16,
     color: 'var(--color-primary)',
+  },
+  templateLink: {
+    fontSize: 14,
+    color: 'var(--color-accent)',
+    textDecoration: 'none',
+    fontWeight: 500,
   },
   uploadForm: {
     display: 'flex',
