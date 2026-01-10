@@ -14,6 +14,12 @@ export default function ParticipantsPage() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 검색
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  // 전화번호 마스킹 해제된 ID 목록
+  const [revealedPhones, setRevealedPhones] = useState<Set<number>>(new Set())
+
   // 회원 추가 폼
   const [showAddForm, setShowAddForm] = useState(false)
   const [newName, setNewName] = useState('')
@@ -22,6 +28,40 @@ export default function ParticipantsPage() {
   const [newDistrict, setNewDistrict] = useState('')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+
+  // 검색 필터링
+  const filteredParticipants = participants.filter(p => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.baptismalName?.toLowerCase().includes(query) ||
+      p.district?.toLowerCase().includes(query)
+    )
+  })
+
+  // 전화번호 클릭 핸들러
+  const togglePhoneReveal = (id: number) => {
+    setRevealedPhones(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  // 전화번호 포맷팅
+  const formatPhone = (phone: string) => {
+    if (!phone) return ''
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length === 11) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+    }
+    return phone
+  }
 
   async function loadParticipants() {
     setLoading(true)
@@ -249,6 +289,22 @@ export default function ParticipantsPage() {
         </div>
       )}
 
+      {/* 검색 */}
+      <div style={styles.searchCard}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="🔍 이름, 세례명, 구역으로 검색..."
+          style={styles.searchInput}
+        />
+        {searchQuery && (
+          <span style={styles.searchResult}>
+            {filteredParticipants.length}명 검색됨
+          </span>
+        )}
+      </div>
+
       {/* 테이블 */}
       <div style={styles.tableCard}>
         {loading ? (
@@ -260,6 +316,10 @@ export default function ParticipantsPage() {
             <p style={{ fontSize: 14, color: 'var(--color-text-light)' }}>
               위에서 회원을 추가하거나 Excel 파일을 업로드해주세요.
             </p>
+          </div>
+        ) : filteredParticipants.length === 0 ? (
+          <div style={styles.emptyState}>
+            <p>검색 결과가 없습니다.</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -275,14 +335,29 @@ export default function ParticipantsPage() {
                 </tr>
               </thead>
               <tbody>
-                {participants.map((p, idx) => (
+                {filteredParticipants.map((p, idx) => (
                   <tr key={p.id}>
                     <td style={{ color: 'var(--color-text-light)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{p.name}</td>
                     <td style={{ color: 'var(--color-text-light)' }}>{p.baptismalName || '-'}</td>
                     <td>
-                      <span style={{ color: 'var(--color-text-light)' }}>***-****-</span>
-                      <span style={{ fontWeight: 500 }}>{p.phoneLast4}</span>
+                      <span
+                        onClick={() => togglePhoneReveal(p.id)}
+                        style={styles.phoneNumber}
+                        title="클릭하여 전화번호 보기/숨기기"
+                      >
+                        {revealedPhones.has(p.id) && p.phone ? (
+                          <span style={{ fontWeight: 500 }}>{formatPhone(p.phone)}</span>
+                        ) : (
+                          <>
+                            <span style={{ color: 'var(--color-text-light)' }}>***-****-</span>
+                            <span style={{ fontWeight: 500 }}>{p.phoneLast4}</span>
+                          </>
+                        )}
+                        <span style={styles.phoneToggle}>
+                          {revealedPhones.has(p.id) ? '🔒' : '👁️'}
+                        </span>
+                      </span>
                     </td>
                     <td style={{ color: 'var(--color-text-light)' }}>{p.district || '-'}</td>
                     <td>
@@ -530,6 +605,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 20,
     fontWeight: 700,
     color: 'var(--color-primary)',
+  },
+  searchCard: {
+    marginBottom: 20,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    padding: '14px 16px',
+    fontSize: 16,
+    borderRadius: 12,
+    border: '1px solid var(--color-border)',
+    background: 'white',
+  },
+  searchResult: {
+    fontSize: 14,
+    color: 'var(--color-text-light)',
+    whiteSpace: 'nowrap' as const,
+  },
+  phoneNumber: {
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '4px 8px',
+    borderRadius: 6,
+    transition: 'background 0.2s',
+  },
+  phoneToggle: {
+    fontSize: 12,
+    opacity: 0.6,
   },
   tableCard: {
     background: 'white',

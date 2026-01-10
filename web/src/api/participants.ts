@@ -2,6 +2,7 @@
 export type Participant = {
   id: number
   name: string
+  phone: string
   phoneLast4: string
   baptismalName: string
   district: string
@@ -82,7 +83,6 @@ export async function uploadParticipantsExcel(
   
   return resp.json()
 }
-
 
 // 구역별 통계 조회
 export async function getDistrictStats(): Promise<Record<string, number>> {

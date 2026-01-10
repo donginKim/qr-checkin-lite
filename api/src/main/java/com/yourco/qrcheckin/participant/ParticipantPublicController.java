@@ -24,8 +24,9 @@ public class ParticipantPublicController {
         if (keyword.isEmpty()) return List.of();
 
         int safeLimit = Math.min(Math.max(limit, 1), 20);
+        // 공개 API에서는 전화번호 마스킹 유지 (phone 대신 빈 문자열)
         return repo.searchByNamePrefix(keyword, safeLimit).stream()
-                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4(), p.baptismalName(), p.district()))
+                .map(p -> new ParticipantSearchItem(p.id(), p.name(), "", p.phoneLast4(), p.baptismalName(), p.district()))
                 .toList();
     }
 }

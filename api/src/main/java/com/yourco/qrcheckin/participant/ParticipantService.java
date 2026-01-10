@@ -62,7 +62,7 @@ public class ParticipantService {
                 continue;
             }
 
-            repo.insert(name, phoneHash, last4, r.baptismalName(), r.district());
+            repo.insert(name, phoneNorm, phoneHash, last4, r.baptismalName(), r.district());
             inserted++;
         }
 
@@ -75,7 +75,7 @@ public class ParticipantService {
 
     public List<ParticipantSearchItem> findAllParticipants() {
         return repo.findAll().stream()
-                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phoneLast4(), p.baptismalName(), p.district()))
+                .map(p -> new ParticipantSearchItem(p.id(), p.name(), p.phone(), p.phoneLast4(), p.baptismalName(), p.district()))
                 .toList();
     }
 
@@ -102,13 +102,13 @@ public class ParticipantService {
         String baptismalName = req.baptismalName() != null ? req.baptismalName().trim() : "";
         String district = req.district() != null ? req.district().trim() : "";
 
-        repo.insert(name, phoneHash, last4, baptismalName, district);
+        repo.insert(name, phoneNorm, phoneHash, last4, baptismalName, district);
         
         // 방금 추가된 회원 조회해서 반환
         var participant = repo.findByNameAndPhoneHash(name, phoneHash)
                 .orElseThrow(() -> new RuntimeException("회원 등록 실패"));
         
-        return new ParticipantSearchItem(participant.id(), participant.name(), participant.phoneLast4(), participant.baptismalName(), participant.district());
+        return new ParticipantSearchItem(participant.id(), participant.name(), participant.phone(), participant.phoneLast4(), participant.baptismalName(), participant.district());
     }
 
     @Transactional

@@ -23,6 +23,7 @@ public class ParticipantRepository {
             new Participant(
                     rs.getLong("id"),
                     rs.getString("name"),
+                    rs.getString("phone"),
                     rs.getString("phone_hash"),
                     rs.getString("phone_last4"),
                     rs.getString("baptismal_name"),
@@ -30,11 +31,11 @@ public class ParticipantRepository {
                     rs.getString("created_at")
             );
 
-    public void insert(String name, String phoneHash, String phoneLast4, String baptismalName, String district) {
+    public void insert(String name, String phone, String phoneHash, String phoneLast4, String baptismalName, String district) {
         String now = OffsetDateTime.now().toString();
         jdbc.update(
-                "INSERT INTO participants(name, phone_hash, phone_last4, baptismal_name, district, created_at) VALUES(?,?,?,?,?,?)",
-                name, phoneHash, phoneLast4, baptismalName != null ? baptismalName : "", district != null ? district : "", now
+                "INSERT INTO participants(name, phone, phone_hash, phone_last4, baptismal_name, district, created_at) VALUES(?,?,?,?,?,?,?)",
+                name, phone != null ? phone : "", phoneHash, phoneLast4, baptismalName != null ? baptismalName : "", district != null ? district : "", now
         );
     }
 
@@ -59,7 +60,7 @@ public class ParticipantRepository {
     public List<Participant> searchByNamePrefix(String q, int limit) {
         String like = q.trim() + "%";
         return jdbc.query(
-                "SELECT id, name, phone_hash, phone_last4, baptismal_name, district, created_at FROM participants " +
+                "SELECT id, name, phone, phone_hash, phone_last4, baptismal_name, district, created_at FROM participants " +
                         "WHERE name LIKE ? ORDER BY name LIMIT ?",
                 MAPPER,
                 like, limit
@@ -73,7 +74,7 @@ public class ParticipantRepository {
 
     public List<Participant> findAll() {
         return jdbc.query(
-                "SELECT id, name, phone_hash, phone_last4, baptismal_name, district, created_at FROM participants ORDER BY name",
+                "SELECT id, name, phone, phone_hash, phone_last4, baptismal_name, district, created_at FROM participants ORDER BY name",
                 MAPPER
         );
     }
