@@ -52,6 +52,32 @@ export default function AttendancesPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteResult, setDeleteResult] = useState<{ success: boolean; message: string } | null>(null)
 
+  // 아코디언 상태 (펼쳐진 구역들)
+  const [expandedDistricts, setExpandedDistricts] = useState<Set<string>>(new Set())
+
+  // 구역 토글
+  const toggleDistrict = (district: string) => {
+    setExpandedDistricts(prev => {
+      const next = new Set(prev)
+      if (next.has(district)) {
+        next.delete(district)
+      } else {
+        next.add(district)
+      }
+      return next
+    })
+  }
+
+  // 전체 펼치기/접기
+  const expandAll = () => {
+    const allDistricts = getDistrictStatuses().map(d => d.district)
+    setExpandedDistricts(new Set(allDistricts))
+  }
+
+  const collapseAll = () => {
+    setExpandedDistricts(new Set())
+  }
+
   // 초기 데이터 로드
   useEffect(() => {
     loadInitialData()
@@ -350,56 +376,81 @@ export default function AttendancesPage() {
               <p>등록된 회원이 없습니다.</p>
             </div>
           ) : (
-            districtStatuses.map(status => (
-              <div key={status.district} style={styles.districtCard}>
-                <div style={styles.districtHeader}>
-                  <h3 style={styles.districtTitle}>
-                    📍 {status.district}
-                  </h3>
-                  <div style={styles.districtStats}>
-                    <span style={styles.districtAttendance}>
-                      출석 {status.attended}/{status.total}명
-                    </span>
-                    <span style={{
-                      ...styles.districtPercent,
-                      background: status.attended === status.total 
-                        ? 'var(--color-success)' 
-                        : status.attended / status.total >= 0.5 
-                          ? 'var(--color-secondary)' 
-                          : 'var(--color-error)'
-                    }}>
-                      {Math.round(status.attended / status.total * 100)}%
-                    </span>
-                  </div>
-                </div>
-                <div style={styles.memberList}>
-                  {/* 출석한 사람 먼저, 그 다음 미출석 */}
-                  {status.members
-                    .sort((a, b) => {
-                      if (a.attended === b.attended) return a.name.localeCompare(b.name, 'ko')
-                      return a.attended ? -1 : 1
-                    })
-                    .map(member => (
-                      <div 
-                        key={member.id} 
-                        style={{
-                          ...styles.memberItem,
-                          ...(member.attended ? styles.memberAttended : styles.memberAbsent)
-                        }}
-                      >
-                        <span style={styles.memberStatus}>
-                          {member.attended ? '✅' : '❌'}
-                        </span>
-                        <span style={styles.memberName}>{member.name}</span>
-                        {member.baptismalName && (
-                          <span style={styles.memberBaptismal}>({member.baptismalName})</span>
-                        )}
-                      </div>
-                    ))
-                  }
-                </div>
+            <>
+              {/* 전체 펼치기/접기 버튼 */}
+              <div style={styles.accordionControls}>
+                <button onClick={expandAll} className="secondary" style={styles.accordionBtn}>
+                  📂 전체 펼치기
+                </button>
+                <button onClick={collapseAll} className="secondary" style={styles.accordionBtn}>
+                  📁 전체 접기
+                </button>
               </div>
-            ))
+              
+              {districtStatuses.map(status => {
+                const isExpanded = expandedDistricts.has(status.district)
+                return (
+                  <div key={status.district} style={styles.districtCard}>
+                    <div 
+                      style={styles.districtHeader}
+                      onClick={() => toggleDistrict(status.district)}
+                    >
+                      <div style={styles.districtHeaderLeft}>
+                        <span style={styles.accordionArrow}>
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <h3 style={styles.districtTitle}>
+                          📍 {status.district}
+                        </h3>
+                      </div>
+                      <div style={styles.districtStats}>
+                        <span style={styles.districtAttendance}>
+                          출석 {status.attended}/{status.total}명
+                        </span>
+                        <span style={{
+                          ...styles.districtPercent,
+                          background: status.attended === status.total 
+                            ? 'var(--color-success)' 
+                            : status.attended / status.total >= 0.5 
+                              ? 'var(--color-secondary)' 
+                              : 'var(--color-error)'
+                        }}>
+                          {Math.round(status.attended / status.total * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div style={styles.memberList}>
+                        {/* 출석한 사람 먼저, 그 다음 미출석 */}
+                        {status.members
+                          .sort((a, b) => {
+                            if (a.attended === b.attended) return a.name.localeCompare(b.name, 'ko')
+                            return a.attended ? -1 : 1
+                          })
+                          .map(member => (
+                            <div 
+                              key={member.id} 
+                              style={{
+                                ...styles.memberItem,
+                                ...(member.attended ? styles.memberAttended : styles.memberAbsent)
+                              }}
+                            >
+                              <span style={styles.memberStatus}>
+                                {member.attended ? '✅' : '❌'}
+                              </span>
+                              <span style={styles.memberName}>{member.name}</span>
+                              {member.baptismalName && (
+                                <span style={styles.memberBaptismal}>({member.baptismalName})</span>
+                              )}
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </>
           )}
         </div>
       )}
@@ -663,29 +714,48 @@ const styles: { [key: string]: React.CSSProperties } = {
   districtView: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 12,
+  },
+  accordionControls: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 8,
+  },
+  accordionBtn: {
+    padding: '8px 14px',
+    fontSize: 13,
   },
   districtCard: {
     background: 'white',
-    borderRadius: 16,
+    borderRadius: 12,
     border: '1px solid var(--color-border)',
-    boxShadow: '0 4px 20px rgba(61, 41, 20, 0.08)',
+    boxShadow: '0 2px 8px rgba(61, 41, 20, 0.06)',
     overflow: 'hidden',
   },
   districtHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '16px 20px',
+    padding: '14px 16px',
     background: 'linear-gradient(135deg, var(--color-surface) 0%, #FFF9E6 100%)',
-    borderBottom: '1px solid var(--color-border)',
-    flexWrap: 'wrap',
-    gap: 12,
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    userSelect: 'none' as const,
+  },
+  districtHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
+  accordionArrow: {
+    fontSize: 12,
+    color: 'var(--color-text-light)',
+    width: 16,
   },
   districtTitle: {
     margin: 0,
-    fontSize: 18,
-    fontWeight: 700,
+    fontSize: 16,
+    fontWeight: 600,
     color: 'var(--color-primary)',
   },
   districtStats: {
@@ -706,10 +776,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
   },
   memberList: {
-    padding: 16,
+    padding: 12,
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: 8,
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: 6,
+    borderTop: '1px solid var(--color-border)',
+    background: 'white',
   },
   memberItem: {
     display: 'flex',
