@@ -4,6 +4,7 @@ import com.yourco.qrcheckin.attendance.model.AttendanceRecord;
 import com.yourco.qrcheckin.attendance.model.CheckinRequest;
 import com.yourco.qrcheckin.attendance.model.CheckinResult;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,5 +63,38 @@ public class AttendanceController {
     public Map<String, Object> runCleanup(
             @RequestParam(required = false, defaultValue = "0") int days) {
         return cleanupScheduler.runCleanup(days);
+    }
+
+    // 기간별 출석 내역 삭제
+    @DeleteMapping("/admin/attendances")
+    public Map<String, Object> deleteAttendances(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String sessionId) {
+        
+        int deleted = 0;
+        String message;
+        
+        if (sessionId != null && !sessionId.isBlank()) {
+            // 세션별 삭제
+            deleted = service.deleteBySessionId(sessionId);
+            message = "세션의 출석 기록 " + deleted + "건이 삭제되었습니다.";
+        } else if (startDate != null && endDate != null) {
+            // 기간별 삭제
+            deleted = service.deleteByDateRange(startDate, endDate);
+            message = startDate + " ~ " + endDate + " 기간의 출석 기록 " + deleted + "건이 삭제되었습니다.";
+        } else {
+            return Map.of(
+                "success", false,
+                "deleted", 0,
+                "message", "삭제 조건을 지정해주세요 (sessionId 또는 startDate/endDate)"
+            );
+        }
+        
+        return Map.of(
+            "success", true,
+            "deleted", deleted,
+            "message", message
+        );
     }
 }

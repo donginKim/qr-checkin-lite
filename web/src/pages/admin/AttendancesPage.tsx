@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAttendances, downloadAttendancesExcel } from '../../api/attendance'
+import { getAttendances, downloadAttendancesExcel, deleteAttendancesByDateRange, deleteAttendancesBySession } from '../../api/attendance'
 import type { AttendanceRecord } from '../../api/attendance'
 import { getParticipants } from '../../api/participants'
 import type { Participant } from '../../api/participants'
@@ -42,6 +42,15 @@ export default function AttendancesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedSessionId, setSelectedSessionId] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
+  
+  // 삭제 관련 상태
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteStartDate, setDeleteStartDate] = useState('')
+  const [deleteEndDate, setDeleteEndDate] = useState('')
+  const [deleteMode, setDeleteMode] = useState<'date' | 'session'>('date')
+  const [deleteSessionId, setDeleteSessionId] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteResult, setDeleteResult] = useState<{ success: boolean; message: string } | null>(null)
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -80,6 +89,69 @@ export default function AttendancesPage() {
   function handleSessionChange(sessionId: string) {
     setSelectedSessionId(sessionId)
     loadAttendances(sessionId || undefined)
+  }
+
+  // 삭제 모달 열기
+  function openDeleteModal() {
+    setDeleteResult(null)
+    setDeleteStartDate('')
+    setDeleteEndDate('')
+    setDeleteSessionId('')
+    setDeleteMode('date')
+    setShowDeleteModal(true)
+  }
+
+  // 삭제 실행
+  async function handleDelete() {
+    if (deleteMode === 'date') {
+      if (!deleteStartDate || !deleteEndDate) {
+        alert('시작일과 종료일을 선택해주세요.')
+        return
+      }
+      if (deleteStartDate > deleteEndDate) {
+        alert('시작일이 종료일보다 늦을 수 없습니다.')
+        return
+      }
+      
+      const confirmMsg = `${deleteStartDate} ~ ${deleteEndDate} 기간의 출석 기록을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`
+      if (!confirm(confirmMsg)) return
+      
+      setDeleting(true)
+      try {
+        // endDate는 해당 날짜 포함을 위해 다음 날로 설정
+        const endDatePlus1 = new Date(deleteEndDate)
+        endDatePlus1.setDate(endDatePlus1.getDate() + 1)
+        const endDateStr = endDatePlus1.toISOString().split('T')[0]
+        
+        const result = await deleteAttendancesByDateRange(deleteStartDate, endDateStr)
+        setDeleteResult({ success: result.success, message: result.message })
+        if (result.success) {
+          loadAttendances(selectedSessionId || undefined)
+        }
+      } finally {
+        setDeleting(false)
+      }
+    } else {
+      if (!deleteSessionId) {
+        alert('세션을 선택해주세요.')
+        return
+      }
+      
+      const session = sessions.find(s => s.id === deleteSessionId)
+      const confirmMsg = `"${session?.title}" 세션의 모든 출석 기록을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`
+      if (!confirm(confirmMsg)) return
+      
+      setDeleting(true)
+      try {
+        const result = await deleteAttendancesBySession(deleteSessionId)
+        setDeleteResult({ success: result.success, message: result.message })
+        if (result.success) {
+          loadAttendances(selectedSessionId || undefined)
+        }
+      } finally {
+        setDeleting(false)
+      }
+    }
   }
 
   // 구역별 출석 현황 계산
@@ -196,20 +268,26 @@ export default function AttendancesPage() {
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button 
             onClick={() => downloadAttendancesExcel(attendances)} 
             disabled={attendances.length === 0}
             style={{ padding: '10px 16px' }}
           >
-            📥 엑셀 다운로드
+            📥 엑셀
+          </button>
+          <button 
+            onClick={openDeleteModal}
+            style={{ padding: '10px 16px', background: 'var(--color-error)', borderColor: 'var(--color-error)' }}
+          >
+            🗑️ 삭제
           </button>
           <button 
             onClick={() => loadAttendances(selectedSessionId || undefined)} 
             className="secondary" 
             style={{ padding: '10px 16px' }}
           >
-            🔄 새로고침
+            🔄
           </button>
         </div>
       </div>
@@ -323,6 +401,113 @@ export default function AttendancesPage() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* 삭제 모달 */}
+      {showDeleteModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowDeleteModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2 style={styles.modalTitle}>🗑️ 출석 내역 삭제</h2>
+            
+            {/* 삭제 모드 선택 */}
+            <div style={styles.deleteModeTabs}>
+              <button
+                onClick={() => setDeleteMode('date')}
+                style={{
+                  ...styles.deleteModeTab,
+                  ...(deleteMode === 'date' ? styles.deleteModeTabActive : {})
+                }}
+              >
+                📅 기간별 삭제
+              </button>
+              <button
+                onClick={() => setDeleteMode('session')}
+                style={{
+                  ...styles.deleteModeTab,
+                  ...(deleteMode === 'session' ? styles.deleteModeTabActive : {})
+                }}
+              >
+                🎯 세션별 삭제
+              </button>
+            </div>
+
+            {deleteMode === 'date' ? (
+              <div style={styles.deleteForm}>
+                <div style={styles.dateInputGroup}>
+                  <label style={styles.dateLabel}>시작일</label>
+                  <input
+                    type="date"
+                    value={deleteStartDate}
+                    onChange={(e) => setDeleteStartDate(e.target.value)}
+                    style={styles.dateInput}
+                  />
+                </div>
+                <div style={styles.dateInputGroup}>
+                  <label style={styles.dateLabel}>종료일</label>
+                  <input
+                    type="date"
+                    value={deleteEndDate}
+                    onChange={(e) => setDeleteEndDate(e.target.value)}
+                    style={styles.dateInput}
+                  />
+                </div>
+                <p style={styles.deleteHint}>
+                  💡 선택한 기간(시작일 ~ 종료일 포함)의 모든 출석 기록이 삭제됩니다.
+                </p>
+              </div>
+            ) : (
+              <div style={styles.deleteForm}>
+                <label style={styles.dateLabel}>삭제할 세션</label>
+                <select
+                  value={deleteSessionId}
+                  onChange={(e) => setDeleteSessionId(e.target.value)}
+                  style={styles.sessionSelect}
+                >
+                  <option value="">세션을 선택하세요</option>
+                  {sessions.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.title} ({s.sessionDate})
+                    </option>
+                  ))}
+                </select>
+                <p style={styles.deleteHint}>
+                  💡 선택한 세션의 모든 출석 기록이 삭제됩니다.
+                </p>
+              </div>
+            )}
+
+            {deleteResult && (
+              <div style={{
+                ...styles.deleteResult,
+                background: deleteResult.success ? '#E8F5E9' : '#FFEBEE',
+                color: deleteResult.success ? 'var(--color-success)' : 'var(--color-error)',
+              }}>
+                {deleteResult.message}
+              </div>
+            )}
+
+            <div style={styles.modalButtons}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="secondary"
+                style={{ flex: 1 }}
+              >
+                닫기
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{ 
+                  flex: 1, 
+                  background: 'var(--color-error)', 
+                  borderColor: 'var(--color-error)' 
+                }}
+              >
+                {deleting ? '삭제 중...' : '🗑️ 삭제하기'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -562,5 +747,97 @@ const styles: { [key: string]: React.CSSProperties } = {
   footerLink: {
     color: 'var(--color-text-light)',
     fontSize: 14,
+  },
+  // 모달 스타일
+  modalOverlay: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: 20,
+  },
+  modal: {
+    background: 'white',
+    borderRadius: 16,
+    padding: 24,
+    maxWidth: 420,
+    width: '100%',
+    maxHeight: '90vh',
+    overflow: 'auto',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+  },
+  modalTitle: {
+    margin: '0 0 20px 0',
+    fontSize: 20,
+    color: 'var(--color-primary)',
+    textAlign: 'center',
+  },
+  deleteModeTabs: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 20,
+  },
+  deleteModeTab: {
+    flex: 1,
+    padding: '12px 16px',
+    fontSize: 14,
+    fontWeight: 600,
+    border: '1px solid var(--color-border)',
+    borderRadius: 8,
+    background: 'white',
+    color: 'var(--color-text-light)',
+    cursor: 'pointer',
+  },
+  deleteModeTabActive: {
+    background: 'var(--color-primary)',
+    borderColor: 'var(--color-primary)',
+    color: 'white',
+  },
+  deleteForm: {
+    marginBottom: 20,
+  },
+  dateInputGroup: {
+    marginBottom: 12,
+  },
+  dateLabel: {
+    display: 'block',
+    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: 600,
+    color: 'var(--color-text)',
+  },
+  dateInput: {
+    width: '100%',
+    padding: '12px 14px',
+    fontSize: 16,
+    borderRadius: 8,
+    border: '1px solid var(--color-border)',
+  },
+  deleteHint: {
+    margin: '16px 0 0 0',
+    padding: 12,
+    background: '#FFF9E6',
+    borderRadius: 8,
+    fontSize: 13,
+    color: 'var(--color-text)',
+    lineHeight: 1.5,
+  },
+  deleteResult: {
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: 500,
+  },
+  modalButtons: {
+    display: 'flex',
+    gap: 12,
   },
 }

@@ -71,3 +71,35 @@ function formatPhone(phone: string): string {
   return phone
 }
 
+// 출석 내역 삭제 결과
+export type DeleteAttendancesResult = {
+  success: boolean
+  deleted: number
+  message: string
+}
+
+// 기간별 출석 내역 삭제
+export async function deleteAttendancesByDateRange(startDate: string, endDate: string): Promise<DeleteAttendancesResult> {
+  const resp = await fetch(`/api/admin/attendances?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`, {
+    method: 'DELETE',
+  })
+  
+  if (!resp.ok) {
+    return { success: false, deleted: 0, message: '삭제 실패' }
+  }
+  
+  return resp.json()
+}
+
+// 세션별 출석 내역 삭제
+export async function deleteAttendancesBySession(sessionId: string): Promise<DeleteAttendancesResult> {
+  const resp = await fetch(`/api/admin/attendances?sessionId=${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+  })
+  
+  if (!resp.ok) {
+    return { success: false, deleted: 0, message: '삭제 실패' }
+  }
+  
+  return resp.json()
+}

@@ -118,4 +118,14 @@ public class AttendanceService {
     public int getAttendanceCount(String sessionId) {
         return attendanceRepo.countBySessionId(sessionId);
     }
+
+    @Transactional
+    public int deleteByDateRange(String startDate, String endDate) {
+        return attendanceRepo.deleteByDateRange(startDate, endDate);
+    }
+
+    @Transactional
+    public int deleteBySessionId(String sessionId) {
+        return attendanceRepo.deleteBySessionId(sessionId);
+    }
 }

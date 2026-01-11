@@ -78,4 +78,18 @@ public class AttendanceRepository {
                 cutoffDate
         );
     }
+
+    public int deleteByDateRange(String startDate, String endDate) {
+        return jdbc.update(
+                "DELETE FROM attendances WHERE checked_in_at >= ? AND checked_in_at < ?",
+                startDate, endDate
+        );
+    }
+
+    public int deleteBySessionId(String sessionId) {
+        return jdbc.update(
+                "DELETE FROM attendances WHERE session_id = ?",
+                sessionId
+        );
+    }
 }
