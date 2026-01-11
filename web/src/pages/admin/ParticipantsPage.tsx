@@ -17,6 +17,9 @@ export default function ParticipantsPage() {
   // 검색
   const [searchQuery, setSearchQuery] = useState('')
   
+  // 구역 필터
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
+  
   // 전화번호 마스킹 해제된 ID 목록
   const [revealedPhones, setRevealedPhones] = useState<Set<number>>(new Set())
 
@@ -29,8 +32,15 @@ export default function ParticipantsPage() {
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
-  // 검색 필터링
+  // 검색 및 구역 필터링
   const filteredParticipants = participants.filter(p => {
+    // 구역 필터
+    if (selectedDistrict) {
+      const pDistrict = p.district || '미지정'
+      if (pDistrict !== selectedDistrict) return false
+    }
+    
+    // 검색 필터
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -39,6 +49,16 @@ export default function ParticipantsPage() {
       p.district?.toLowerCase().includes(query)
     )
   })
+  
+  // 구역 클릭 핸들러
+  const handleDistrictClick = (district: string) => {
+    if (selectedDistrict === district) {
+      setSelectedDistrict(null) // 같은 구역 다시 클릭하면 해제
+    } else {
+      setSelectedDistrict(district)
+      setSearchQuery('') // 구역 선택 시 검색어 초기화
+    }
+  }
 
   // 전화번호 클릭 핸들러
   const togglePhoneReveal = (id: number) => {
@@ -277,12 +297,37 @@ export default function ParticipantsPage() {
       {/* 구역별 통계 */}
       {Object.keys(districtStats).length > 0 && (
         <div style={styles.districtStatsCard}>
-          <h3 style={styles.districtStatsTitle}>📊 구역별 현황</h3>
+          <div style={styles.districtStatsHeader}>
+            <h3 style={styles.districtStatsTitle}>📊 구역별 현황</h3>
+            {selectedDistrict && (
+              <button
+                onClick={() => setSelectedDistrict(null)}
+                style={styles.clearFilterButton}
+              >
+                ✕ 필터 해제
+              </button>
+            )}
+          </div>
           <div style={styles.districtGrid}>
             {Object.entries(districtStats).map(([district, count]) => (
-              <div key={district} style={styles.districtItem}>
-                <span style={styles.districtName}>{district}</span>
-                <span style={styles.districtCount}>{count}명</span>
+              <div
+                key={district}
+                onClick={() => handleDistrictClick(district)}
+                style={{
+                  ...styles.districtItem,
+                  ...(selectedDistrict === district ? styles.districtItemSelected : {}),
+                  cursor: 'pointer',
+                }}
+                title={`${district} 회원 보기`}
+              >
+                <span style={{
+                  ...styles.districtName,
+                  ...(selectedDistrict === district ? { color: 'white' } : {}),
+                }}>{district}</span>
+                <span style={{
+                  ...styles.districtCount,
+                  ...(selectedDistrict === district ? { color: 'white' } : {}),
+                }}>{count}명</span>
               </div>
             ))}
           </div>
@@ -294,13 +339,17 @@ export default function ParticipantsPage() {
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value)
+            if (e.target.value) setSelectedDistrict(null) // 검색 시 구역 필터 해제
+          }}
           placeholder="🔍 이름, 세례명, 구역으로 검색..."
           style={styles.searchInput}
         />
-        {searchQuery && (
+        {(searchQuery || selectedDistrict) && (
           <span style={styles.searchResult}>
-            {filteredParticipants.length}명 검색됨
+            {selectedDistrict && <strong>[{selectedDistrict}] </strong>}
+            {filteredParticipants.length}명
           </span>
         )}
       </div>
@@ -577,10 +626,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid var(--color-border)',
     boxShadow: '0 4px 20px rgba(61, 41, 20, 0.08)',
   },
+  districtStatsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   districtStatsTitle: {
-    margin: '0 0 16px 0',
+    margin: 0,
     fontSize: 16,
     color: 'var(--color-primary)',
+  },
+  clearFilterButton: {
+    padding: '6px 12px',
+    fontSize: 13,
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 6,
+    color: 'var(--color-text-light)',
+    cursor: 'pointer',
   },
   districtGrid: {
     display: 'grid',
@@ -595,6 +659,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'var(--color-surface)',
     borderRadius: 8,
     border: '1px solid var(--color-border)',
+    transition: 'all 0.2s',
+  },
+  districtItemSelected: {
+    background: 'var(--color-primary)',
+    borderColor: 'var(--color-primary)',
+    color: 'white',
+    transform: 'scale(1.05)',
+    boxShadow: '0 4px 12px rgba(61, 41, 20, 0.2)',
   },
   districtName: {
     fontSize: 14,
