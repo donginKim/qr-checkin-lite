@@ -17,8 +17,14 @@ export default function ParticipantsPage() {
   // 검색
   const [searchQuery, setSearchQuery] = useState('')
   
-  // 구역 필터
+  // 보기 모드
+  const [viewMode, setViewMode] = useState<'list' | 'district'>('list')
+  
+  // 구역 필터 (리스트 모드용)
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
+  
+  // 아코디언 상태 (구역별 모드용)
+  const [expandedDistricts, setExpandedDistricts] = useState<Set<string>>(new Set())
   
   // 전화번호 마스킹 해제된 ID 목록
   const [revealedPhones, setRevealedPhones] = useState<Set<number>>(new Set())
@@ -50,7 +56,7 @@ export default function ParticipantsPage() {
     )
   })
   
-  // 구역 클릭 핸들러
+  // 구역 클릭 핸들러 (리스트 모드)
   const handleDistrictClick = (district: string) => {
     if (selectedDistrict === district) {
       setSelectedDistrict(null) // 같은 구역 다시 클릭하면 해제
@@ -58,6 +64,49 @@ export default function ParticipantsPage() {
       setSelectedDistrict(district)
       setSearchQuery('') // 구역 선택 시 검색어 초기화
     }
+  }
+
+  // 아코디언 토글 (구역별 모드)
+  const toggleDistrictAccordion = (district: string) => {
+    setExpandedDistricts(prev => {
+      const next = new Set(prev)
+      if (next.has(district)) {
+        next.delete(district)
+      } else {
+        next.add(district)
+      }
+      return next
+    })
+  }
+
+  // 전체 펼치기/접기
+  const expandAllDistricts = () => {
+    const allDistricts = Object.keys(districtStats)
+    setExpandedDistricts(new Set(allDistricts))
+  }
+
+  const collapseAllDistricts = () => {
+    setExpandedDistricts(new Set())
+  }
+
+  // 구역별 회원 그룹핑
+  const getParticipantsByDistrict = () => {
+    const grouped: Record<string, Participant[]> = {}
+    
+    participants.forEach(p => {
+      const district = p.district || '미지정'
+      if (!grouped[district]) {
+        grouped[district] = []
+      }
+      grouped[district].push(p)
+    })
+
+    // 구역명 순으로 정렬, 미지정은 마지막
+    return Object.entries(grouped).sort((a, b) => {
+      if (a[0] === '미지정') return 1
+      if (b[0] === '미지정') return -1
+      return a[0].localeCompare(b[0], 'ko')
+    })
   }
 
   // 전화번호 클릭 핸들러
@@ -294,8 +343,30 @@ export default function ParticipantsPage() {
         </button>
       </div>
 
-      {/* 구역별 통계 */}
-      {Object.keys(districtStats).length > 0 && (
+      {/* 보기 모드 탭 */}
+      <div style={styles.tabContainer}>
+        <button
+          onClick={() => setViewMode('list')}
+          style={{
+            ...styles.tab,
+            ...(viewMode === 'list' ? styles.tabActive : {})
+          }}
+        >
+          📋 전체 목록
+        </button>
+        <button
+          onClick={() => setViewMode('district')}
+          style={{
+            ...styles.tab,
+            ...(viewMode === 'district' ? styles.tabActive : {})
+          }}
+        >
+          📊 구역별 보기
+        </button>
+      </div>
+
+      {/* 리스트 모드 - 구역별 통계 */}
+      {viewMode === 'list' && Object.keys(districtStats).length > 0 && (
         <div style={styles.districtStatsCard}>
           <div style={styles.districtStatsHeader}>
             <h3 style={styles.districtStatsTitle}>📊 구역별 현황</h3>
@@ -334,97 +405,186 @@ export default function ParticipantsPage() {
         </div>
       )}
 
-      {/* 검색 */}
-      <div style={styles.searchCard}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value)
-            if (e.target.value) setSelectedDistrict(null) // 검색 시 구역 필터 해제
-          }}
-          placeholder="🔍 이름, 세례명, 구역으로 검색..."
-          style={styles.searchInput}
-        />
-        {(searchQuery || selectedDistrict) && (
-          <span style={styles.searchResult}>
-            {selectedDistrict && <strong>[{selectedDistrict}] </strong>}
-            {filteredParticipants.length}명
-          </span>
-        )}
-      </div>
+      {/* 리스트 모드 - 검색 */}
+      {viewMode === 'list' && (
+        <div style={styles.searchCard}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              if (e.target.value) setSelectedDistrict(null) // 검색 시 구역 필터 해제
+            }}
+            placeholder="🔍 이름, 세례명, 구역으로 검색..."
+            style={styles.searchInput}
+          />
+          {(searchQuery || selectedDistrict) && (
+            <span style={styles.searchResult}>
+              {selectedDistrict && <strong>[{selectedDistrict}] </strong>}
+              {filteredParticipants.length}명
+            </span>
+          )}
+        </div>
+      )}
 
-      {/* 테이블 */}
-      <div style={styles.tableCard}>
-        {loading ? (
-          <div style={styles.emptyState}>로딩 중...</div>
-        ) : participants.length === 0 ? (
-          <div style={styles.emptyState}>
-            <span style={{ fontSize: 48, marginBottom: 16 }}>👥</span>
-            <p>등록된 회원이 없습니다.</p>
-            <p style={{ fontSize: 14, color: 'var(--color-text-light)' }}>
-              위에서 회원을 추가하거나 Excel 파일을 업로드해주세요.
-            </p>
-          </div>
-        ) : filteredParticipants.length === 0 ? (
-          <div style={styles.emptyState}>
-            <p>검색 결과가 없습니다.</p>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th style={{ width: 50 }}>#</th>
-                  <th>이름</th>
-                  <th>세례명</th>
-                  <th>전화번호</th>
-                  <th>구역</th>
-                  <th style={{ width: 70 }}>관리</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredParticipants.map((p, idx) => (
-                  <tr key={p.id}>
-                    <td style={{ color: 'var(--color-text-light)' }}>{idx + 1}</td>
-                    <td style={{ fontWeight: 600 }}>{p.name}</td>
-                    <td style={{ color: 'var(--color-text-light)' }}>{p.baptismalName || '-'}</td>
-                    <td>
-                      <span
-                        onClick={() => togglePhoneReveal(p.id)}
-                        style={styles.phoneNumber}
-                        title="클릭하여 전화번호 보기/숨기기"
-                      >
-                        {revealedPhones.has(p.id) && p.phone ? (
-                          <span style={{ fontWeight: 500 }}>{formatPhone(p.phone)}</span>
-                        ) : (
-                          <>
-                            <span style={{ color: 'var(--color-text-light)' }}>***-****-</span>
-                            <span style={{ fontWeight: 500 }}>{p.phoneLast4}</span>
-                          </>
-                        )}
-                        <span style={styles.phoneToggle}>
-                          {revealedPhones.has(p.id) ? '🔒' : '👁️'}
-                        </span>
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--color-text-light)' }}>{p.district || '-'}</td>
-                    <td>
-                      <button
-                        onClick={() => handleDelete(p.id, p.name)}
-                        style={styles.deleteButton}
-                        title="삭제"
-                      >
-                        🗑️
-                      </button>
-                    </td>
+      {/* 리스트 모드 - 테이블 */}
+      {viewMode === 'list' && (
+        <div style={styles.tableCard}>
+          {loading ? (
+            <div style={styles.emptyState}>로딩 중...</div>
+          ) : participants.length === 0 ? (
+            <div style={styles.emptyState}>
+              <span style={{ fontSize: 48, marginBottom: 16 }}>👥</span>
+              <p>등록된 회원이 없습니다.</p>
+              <p style={{ fontSize: 14, color: 'var(--color-text-light)' }}>
+                위에서 회원을 추가하거나 Excel 파일을 업로드해주세요.
+              </p>
+            </div>
+          ) : filteredParticipants.length === 0 ? (
+            <div style={styles.emptyState}>
+              <p>검색 결과가 없습니다.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: 50 }}>#</th>
+                    <th>이름</th>
+                    <th>세례명</th>
+                    <th>전화번호</th>
+                    <th>구역</th>
+                    <th style={{ width: 70 }}>관리</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredParticipants.map((p, idx) => (
+                    <tr key={p.id}>
+                      <td style={{ color: 'var(--color-text-light)' }}>{idx + 1}</td>
+                      <td style={{ fontWeight: 600 }}>{p.name}</td>
+                      <td style={{ color: 'var(--color-text-light)' }}>{p.baptismalName || '-'}</td>
+                      <td>
+                        <span
+                          onClick={() => togglePhoneReveal(p.id)}
+                          style={styles.phoneNumber}
+                          title="클릭하여 전화번호 보기/숨기기"
+                        >
+                          {revealedPhones.has(p.id) && p.phone ? (
+                            <span style={{ fontWeight: 500 }}>{formatPhone(p.phone)}</span>
+                          ) : (
+                            <>
+                              <span style={{ color: 'var(--color-text-light)' }}>***-****-</span>
+                              <span style={{ fontWeight: 500 }}>{p.phoneLast4}</span>
+                            </>
+                          )}
+                          <span style={styles.phoneToggle}>
+                            {revealedPhones.has(p.id) ? '🔒' : '👁️'}
+                          </span>
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--color-text-light)' }}>{p.district || '-'}</td>
+                      <td>
+                        <button
+                          onClick={() => handleDelete(p.id, p.name)}
+                          style={styles.deleteButton}
+                          title="삭제"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
           </div>
         )}
-      </div>
+        </div>
+      )}
+
+      {/* 구역별 모드 - 아코디언 */}
+      {viewMode === 'district' && (
+        <div style={styles.districtAccordionView}>
+          {loading ? (
+            <div style={styles.emptyState}>로딩 중...</div>
+          ) : participants.length === 0 ? (
+            <div style={styles.emptyState}>
+              <span style={{ fontSize: 48, marginBottom: 16 }}>👥</span>
+              <p>등록된 회원이 없습니다.</p>
+            </div>
+          ) : (
+            <>
+              {/* 전체 펼치기/접기 버튼 */}
+              <div style={styles.accordionControls}>
+                <button onClick={expandAllDistricts} className="secondary" style={styles.accordionBtn}>
+                  📂 전체 펼치기
+                </button>
+                <button onClick={collapseAllDistricts} className="secondary" style={styles.accordionBtn}>
+                  📁 전체 접기
+                </button>
+              </div>
+
+              {getParticipantsByDistrict().map(([district, members]) => {
+                const isExpanded = expandedDistricts.has(district)
+                return (
+                  <div key={district} style={styles.accordionCard}>
+                    <div
+                      style={styles.accordionHeader}
+                      onClick={() => toggleDistrictAccordion(district)}
+                    >
+                      <div style={styles.accordionHeaderLeft}>
+                        <span style={styles.accordionArrow}>
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <h3 style={styles.accordionTitle}>
+                          📍 {district}
+                        </h3>
+                      </div>
+                      <span style={styles.accordionCount}>{members.length}명</span>
+                    </div>
+                    {isExpanded && (
+                      <div style={styles.accordionContent}>
+                        {members
+                          .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+                          .map(p => (
+                            <div key={p.id} style={styles.memberCard}>
+                              <div style={styles.memberInfo}>
+                                <span style={styles.memberNameText}>{p.name}</span>
+                                {p.baptismalName && (
+                                  <span style={styles.memberBaptismal}>({p.baptismalName})</span>
+                                )}
+                              </div>
+                              <div style={styles.memberActions}>
+                                <span
+                                  onClick={() => togglePhoneReveal(p.id)}
+                                  style={styles.memberPhone}
+                                >
+                                  {revealedPhones.has(p.id) && p.phone 
+                                    ? formatPhone(p.phone) 
+                                    : `***-****-${p.phoneLast4}`
+                                  }
+                                  <span style={{ marginLeft: 4, fontSize: 12 }}>
+                                    {revealedPhones.has(p.id) ? '🔒' : '👁️'}
+                                  </span>
+                                </span>
+                                <button
+                                  onClick={() => handleDelete(p.id, p.name)}
+                                  style={styles.memberDeleteBtn}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </>
+          )}
+        </div>
+      )}
 
       {/* 푸터 */}
       <div style={styles.footer}>
@@ -744,5 +904,136 @@ const styles: { [key: string]: React.CSSProperties } = {
   footerLink: {
     color: 'var(--color-text-light)',
     fontSize: 14,
+  },
+  // 탭 스타일
+  tabContainer: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    padding: '14px 20px',
+    fontSize: 15,
+    fontWeight: 600,
+    border: '1px solid var(--color-border)',
+    borderRadius: 10,
+    background: 'white',
+    color: 'var(--color-text-light)',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  tabActive: {
+    background: 'var(--color-primary)',
+    borderColor: 'var(--color-primary)',
+    color: 'white',
+  },
+  // 구역별 아코디언 스타일
+  districtAccordionView: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  accordionControls: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 8,
+  },
+  accordionBtn: {
+    padding: '8px 14px',
+    fontSize: 13,
+  },
+  accordionCard: {
+    background: 'white',
+    borderRadius: 12,
+    border: '1px solid var(--color-border)',
+    boxShadow: '0 2px 8px rgba(61, 41, 20, 0.06)',
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '14px 16px',
+    background: 'linear-gradient(135deg, var(--color-surface) 0%, #FFF9E6 100%)',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    userSelect: 'none' as const,
+  },
+  accordionHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
+  accordionArrow: {
+    fontSize: 12,
+    color: 'var(--color-text-light)',
+    width: 16,
+  },
+  accordionTitle: {
+    margin: 0,
+    fontSize: 16,
+    fontWeight: 600,
+    color: 'var(--color-primary)',
+  },
+  accordionCount: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: 'var(--color-primary)',
+    background: 'white',
+    padding: '4px 12px',
+    borderRadius: 20,
+    border: '1px solid var(--color-border)',
+  },
+  accordionContent: {
+    padding: 12,
+    borderTop: '1px solid var(--color-border)',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: 8,
+  },
+  memberCard: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 12px',
+    background: 'var(--color-surface)',
+    borderRadius: 8,
+    border: '1px solid var(--color-border)',
+  },
+  memberInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  memberNameText: {
+    fontWeight: 600,
+    color: 'var(--color-text)',
+  },
+  memberBaptismal: {
+    fontSize: 12,
+    color: 'var(--color-text-light)',
+  },
+  memberActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  memberPhone: {
+    fontSize: 13,
+    color: 'var(--color-text-light)',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    borderRadius: 4,
+    background: 'white',
+    border: '1px solid var(--color-border)',
+  },
+  memberDeleteBtn: {
+    padding: '4px 8px',
+    background: 'transparent',
+    border: '1px solid var(--color-border)',
+    borderRadius: 4,
+    cursor: 'pointer',
+    fontSize: 12,
   },
 }
