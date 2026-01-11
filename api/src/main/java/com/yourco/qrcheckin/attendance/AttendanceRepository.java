@@ -25,7 +25,10 @@ public class AttendanceRepository {
 
     public List<AttendanceRecord> findAll() {
         return jdbc.query(
-                "SELECT id, session_id, session_title, participant_id, name, phone, phone_last4, checked_in_at FROM attendances ORDER BY checked_in_at DESC",
+                "SELECT a.id, a.session_id, a.session_title, a.participant_id, a.name, a.phone, a.phone_last4, " +
+                "COALESCE(p.district, '') as district, a.checked_in_at " +
+                "FROM attendances a LEFT JOIN participants p ON a.participant_id = p.id " +
+                "ORDER BY a.checked_in_at DESC",
                 (rs, rowNum) -> new AttendanceRecord(
                         rs.getLong("id"),
                         rs.getString("session_id"),
@@ -34,6 +37,7 @@ public class AttendanceRepository {
                         rs.getString("name"),
                         rs.getString("phone"),
                         rs.getString("phone_last4"),
+                        rs.getString("district"),
                         rs.getString("checked_in_at")
                 )
         );
@@ -41,7 +45,10 @@ public class AttendanceRepository {
 
     public List<AttendanceRecord> findBySessionId(String sessionId) {
         return jdbc.query(
-                "SELECT id, session_id, session_title, participant_id, name, phone, phone_last4, checked_in_at FROM attendances WHERE session_id = ? ORDER BY checked_in_at DESC",
+                "SELECT a.id, a.session_id, a.session_title, a.participant_id, a.name, a.phone, a.phone_last4, " +
+                "COALESCE(p.district, '') as district, a.checked_in_at " +
+                "FROM attendances a LEFT JOIN participants p ON a.participant_id = p.id " +
+                "WHERE a.session_id = ? ORDER BY a.checked_in_at DESC",
                 (rs, rowNum) -> new AttendanceRecord(
                         rs.getLong("id"),
                         rs.getString("session_id"),
@@ -50,6 +57,7 @@ public class AttendanceRepository {
                         rs.getString("name"),
                         rs.getString("phone"),
                         rs.getString("phone_last4"),
+                        rs.getString("district"),
                         rs.getString("checked_in_at")
                 ),
                 sessionId

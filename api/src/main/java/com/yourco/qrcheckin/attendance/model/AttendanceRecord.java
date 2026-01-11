@@ -8,6 +8,7 @@ public record AttendanceRecord(
     String name,
     String phone,
     String phoneLast4,
+    String district,
     String checkedInAt
 ) {
 }

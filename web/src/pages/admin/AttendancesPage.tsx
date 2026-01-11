@@ -102,6 +102,7 @@ export default function AttendancesPage() {
                 <tr>
                   <th style={{ width: 50 }}>#</th>
                   <th>이름</th>
+                  <th>구역</th>
                   <th>전화번호</th>
                   <th>출석 시간</th>
                   <th>세션</th>
@@ -112,6 +113,7 @@ export default function AttendancesPage() {
                   <tr key={att.id}>
                     <td style={{ color: 'var(--color-text-light)' }}>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{att.name}</td>
+                    <td style={{ color: 'var(--color-text-light)' }}>{att.district || '-'}</td>
                     <td style={{ fontFamily: 'monospace', fontSize: 14 }}>
                       {formatPhoneDisplay(att.phone)}
                     </td>

@@ -9,6 +9,7 @@ export type AttendanceRecord = {
   name: string
   phone: string
   phoneLast4: string
+  district: string
   checkedInAt: string
 }
 
@@ -30,6 +31,7 @@ export function downloadAttendancesExcel(attendances: AttendanceRecord[], filena
   const data = attendances.map((att, idx) => ({
     '번호': idx + 1,
     '이름': att.name,
+    '구역': att.district || '-',
     '전화번호': formatPhone(att.phone),
     '출석 시간': att.checkedInAt,
     '세션': att.sessionTitle,
@@ -42,6 +44,7 @@ export function downloadAttendancesExcel(attendances: AttendanceRecord[], filena
   ws['!cols'] = [
     { wch: 6 },   // 번호
     { wch: 12 },  // 이름
+    { wch: 10 },  // 구역
     { wch: 15 },  // 전화번호
     { wch: 18 },  // 출석 시간
     { wch: 20 },  // 세션
