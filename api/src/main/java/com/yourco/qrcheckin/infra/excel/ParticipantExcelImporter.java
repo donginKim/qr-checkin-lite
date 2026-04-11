@@ -28,9 +28,9 @@ public class ParticipantExcelImporter {
                 Sheet sheet = wb.getSheetAt(si);
                 String district = cleanDistrictName(sheet.getSheetName());
 
-                // 5행 = 컬럼 헤더, 6행(index 5)부터 데이터
+                // 시트마다 헤더 위치가 달라 4행(index 3)부터 읽고 헤더/빈행은 필터로 제외
                 // C열(index 2)=성명, D열(index 3)=세례명, E열(index 4)=연락처
-                for (int i = 5; i <= sheet.getLastRowNum(); i++) {
+                for (int i = 3; i <= sheet.getLastRowNum(); i++) {
                     Row r = sheet.getRow(i);
                     if (r == null) continue;
 
@@ -38,7 +38,7 @@ public class ParticipantExcelImporter {
                     String baptismalName = cellToString(r.getCell(3)).trim();
                     String phone        = cellToString(r.getCell(4)).trim();
 
-                    if (name.isBlank() || name.equals("성명") || name.equals("이름")) continue;
+                    if (name.isBlank() || name.equals("성명") || name.equals("이름") || name.equals("순번")) continue;
 
                     rows.add(new RowData(name, phone, baptismalName, district));
                 }
