@@ -60,6 +60,7 @@ export async function deleteParticipant(id: number): Promise<void> {
 export type ImportResult = {
   totalRows: number
   inserted: number
+  updated: number
   skipped: number
 }
 

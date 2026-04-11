@@ -318,8 +318,10 @@ export default function ParticipantsPage() {
 
         {uploadResult && (
           <div style={styles.uploadSuccess}>
-            ✅ 완료: 총 {uploadResult.totalRows}행 중 
-            <strong> {uploadResult.inserted}명 등록</strong>, {uploadResult.skipped}명 스킵
+            ✅ 완료: 총 {uploadResult.totalRows}행 중{' '}
+            <strong>{uploadResult.inserted}명 등록</strong>
+            {uploadResult.updated > 0 && <>, <strong>{uploadResult.updated}명 수정</strong></>}
+            , {uploadResult.skipped}명 스킵
           </div>
         )}
 

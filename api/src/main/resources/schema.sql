@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS participants (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   name          TEXT NOT NULL,
+  phone         TEXT NOT NULL DEFAULT '',
   phone_hash    TEXT NOT NULL,
   phone_last4   TEXT NOT NULL,
   baptismal_name TEXT DEFAULT '',

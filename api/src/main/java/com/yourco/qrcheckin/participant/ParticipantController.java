@@ -71,8 +71,6 @@ public class ParticipantController {
         response.setHeader("Content-Disposition", "attachment; filename=participants_template.xlsx");
 
         try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("회원 명단");
-
             // 헤더 스타일
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
@@ -82,33 +80,62 @@ public class ParticipantController {
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             headerStyle.setBorderBottom(BorderStyle.THIN);
 
-            // 헤더 행
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"이름", "전화번호", "세례명", "구역"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
-            }
-
-            // 예시 데이터
-            String[][] examples = {
-                {"홍길동", "010-1234-5678", "베드로", "1구역"},
-                {"김철수", "010-2345-6789", "요한", "2구역"},
-                {"박영희", "010-3456-7890", "마리아", "1구역"}
+            // 구역별 시트 예시 (시트명 = 구역명)
+            String[][] sheetExamples = {
+                {"1.1구역", "홍길동", "베드로", "010-1234-5678"},
+                {"2.2구역", "김철수", "요한",   "010-2345-6789"},
             };
-            for (int i = 0; i < examples.length; i++) {
-                Row row = sheet.createRow(i + 1);
-                for (int j = 0; j < examples[i].length; j++) {
-                    row.createCell(j).setCellValue(examples[i][j]);
-                }
-            }
+            String[][][] dataExamples = {
+                {{"홍길동", "베드로", "010-1234-5678"}, {"이영희", "마리아", "010-9876-5432"}},
+                {{"김철수", "요한",   "010-2345-6789"}, {"박민수", "안드레아", "010-5555-1234"}},
+            };
+            String[] sheetNames = {"1.1구역", "2.2구역"};
 
-            // 열 너비 조정
-            sheet.setColumnWidth(0, 4000);  // 이름
-            sheet.setColumnWidth(1, 5000);  // 전화번호
-            sheet.setColumnWidth(2, 4000);  // 세례명
-            sheet.setColumnWidth(3, 4000);  // 구역
+            for (int si = 0; si < sheetNames.length; si++) {
+                Sheet sheet = workbook.createSheet(sheetNames[si]);
+
+                // 행1: 빈 행
+                sheet.createRow(0);
+
+                // 행2: 구역명
+                Row districtRow = sheet.createRow(1);
+                districtRow.createCell(0).setCellValue(sheetNames[si]);
+
+                // 행3: 빈 행 (구역장 정보 등)
+                sheet.createRow(2);
+
+                // 행4: 출석회원
+                Row categoryRow = sheet.createRow(3);
+                categoryRow.createCell(0).setCellValue("출석회원");
+
+                // 행5: 컬럼 헤더 (C=성명, D=세례명, E=연락처)
+                Row colHeaderRow = sheet.createRow(4);
+                colHeaderRow.createCell(0).setCellValue("순번");
+                colHeaderRow.createCell(1).setCellValue("출생년도");
+                Cell nameHeader = colHeaderRow.createCell(2);
+                nameHeader.setCellValue("성명");
+                nameHeader.setCellStyle(headerStyle);
+                Cell baptismalHeader = colHeaderRow.createCell(3);
+                baptismalHeader.setCellValue("세례명");
+                baptismalHeader.setCellStyle(headerStyle);
+                Cell phoneHeader = colHeaderRow.createCell(4);
+                phoneHeader.setCellValue("연락처");
+                phoneHeader.setCellStyle(headerStyle);
+
+                // 행6~: 예시 데이터 (C=성명, D=세례명, E=연락처)
+                String[][] data = dataExamples[si];
+                for (int i = 0; i < data.length; i++) {
+                    Row row = sheet.createRow(5 + i);
+                    row.createCell(0).setCellValue(i + 1);     // 순번
+                    row.createCell(2).setCellValue(data[i][0]); // C: 성명
+                    row.createCell(3).setCellValue(data[i][1]); // D: 세례명
+                    row.createCell(4).setCellValue(data[i][2]); // E: 연락처
+                }
+
+                sheet.setColumnWidth(2, 4000); // C: 성명
+                sheet.setColumnWidth(3, 4000); // D: 세례명
+                sheet.setColumnWidth(4, 5000); // E: 연락처
+            }
 
             workbook.write(response.getOutputStream());
         }

@@ -34,6 +34,7 @@ public class ParticipantService {
         if (replaceAll) repo.deleteAll();
 
         int inserted = 0;
+        int updated = 0;
         int skipped = 0;
 
         // 동일 파일 내 중복 방지(이름+폰 정규화)
@@ -56,9 +57,11 @@ public class ParticipantService {
             String phoneHash = hashing.sha256(phoneNorm);
             String last4 = PhoneNormalizer.last4(phoneNorm);
 
-            // 이미 DB에 같은 사람이 있으면 스킵
-            if (repo.findByNameAndPhoneHash(name, phoneHash).isPresent()) {
-                skipped++;
+            // 이미 DB에 같은 사람이 있으면 세례명·구역 업데이트
+            var existing = repo.findByNameAndPhoneHash(name, phoneHash);
+            if (existing.isPresent()) {
+                repo.updateBaptismalAndDistrict(existing.get().id(), r.baptismalName(), r.district());
+                updated++;
                 continue;
             }
 
@@ -66,7 +69,7 @@ public class ParticipantService {
             inserted++;
         }
 
-        return new ParticipantImportResult(rows.size(), inserted, skipped);
+        return new ParticipantImportResult(rows.size(), inserted, updated, skipped);
     }
 
     public int countParticipants() {

@@ -79,6 +79,15 @@ public class ParticipantRepository {
         );
     }
 
+    public void updateBaptismalAndDistrict(long id, String baptismalName, String district) {
+        jdbc.update(
+                "UPDATE participants SET baptismal_name = ?, district = ? WHERE id = ?",
+                baptismalName != null ? baptismalName : "",
+                district != null ? district : "",
+                id
+        );
+    }
+
     public void deleteAll() {
         jdbc.update("DELETE FROM participants");
     }
