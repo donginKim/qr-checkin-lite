@@ -29,7 +29,7 @@ export default function ParticipantsPage() {
   // 전화번호 마스킹 해제된 ID 목록
   const [revealedPhones, setRevealedPhones] = useState<Set<number>>(new Set())
 
-  // 회원 추가 폼
+  // 회원 추가 폼 (전체)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
@@ -37,6 +37,14 @@ export default function ParticipantsPage() {
   const [newDistrict, setNewDistrict] = useState('')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+
+  // 구역별 인라인 추가 폼
+  const [districtAddForm, setDistrictAddForm] = useState<string | null>(null) // 열린 구역명
+  const [districtNewName, setDistrictNewName] = useState('')
+  const [districtNewPhone, setDistrictNewPhone] = useState('')
+  const [districtNewBaptismal, setDistrictNewBaptismal] = useState('')
+  const [districtAdding, setDistrictAdding] = useState(false)
+  const [districtAddError, setDistrictAddError] = useState<string | null>(null)
 
   // 검색 및 구역 필터링
   const filteredParticipants = participants.filter(p => {
@@ -199,6 +207,37 @@ export default function ParticipantsPage() {
       setAddError(err instanceof Error ? err.message : '등록 실패')
     } finally {
       setAdding(false)
+    }
+  }
+
+  function openDistrictAddForm(district: string) {
+    setDistrictAddForm(district)
+    setDistrictNewName('')
+    setDistrictNewPhone('')
+    setDistrictNewBaptismal('')
+    setDistrictAddError(null)
+    // 해당 구역 아코디언 펼치기
+    setExpandedDistricts(prev => new Set(prev).add(district))
+  }
+
+  async function handleDistrictAdd(e: React.FormEvent, district: string) {
+    e.preventDefault()
+    if (!districtNewName.trim() || !districtNewPhone.trim()) return
+    setDistrictAdding(true)
+    setDistrictAddError(null)
+    try {
+      await addParticipant({
+        name: districtNewName.trim(),
+        phone: districtNewPhone.trim(),
+        baptismalName: districtNewBaptismal.trim() || undefined,
+        district,
+      })
+      setDistrictAddForm(null)
+      loadParticipants()
+    } catch (err) {
+      setDistrictAddError(err instanceof Error ? err.message : '등록 실패')
+    } finally {
+      setDistrictAdding(false)
     }
   }
 
@@ -541,10 +580,65 @@ export default function ParticipantsPage() {
                           📍 {district}
                         </h3>
                       </div>
-                      <span style={styles.accordionCount}>{members.length}명</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={styles.accordionCount}>{members.length}명</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openDistrictAddForm(district) }}
+                          style={styles.districtAddBtn}
+                        >
+                          + 추가
+                        </button>
+                      </div>
                     </div>
                     {isExpanded && (
                       <div style={styles.accordionContent}>
+                        {/* 구역 인라인 추가 폼 */}
+                        {districtAddForm === district && (
+                          <form
+                            onSubmit={(e) => handleDistrictAdd(e, district)}
+                            style={styles.districtInlineForm}
+                          >
+                            <div style={styles.districtInlineGrid}>
+                              <input
+                                value={districtNewName}
+                                onChange={(e) => setDistrictNewName(e.target.value)}
+                                placeholder="이름 *"
+                                style={styles.addInput}
+                                autoFocus
+                              />
+                              <input
+                                value={districtNewPhone}
+                                onChange={(e) => setDistrictNewPhone(e.target.value)}
+                                placeholder="전화번호 * (010-1234-5678)"
+                                style={styles.addInput}
+                              />
+                              <input
+                                value={districtNewBaptismal}
+                                onChange={(e) => setDistrictNewBaptismal(e.target.value)}
+                                placeholder="세례명"
+                                style={styles.addInput}
+                              />
+                            </div>
+                            {districtAddError && (
+                              <div style={styles.error}>{districtAddError}</div>
+                            )}
+                            <div style={styles.addFormActions}>
+                              <button
+                                type="submit"
+                                disabled={districtAdding || !districtNewName.trim() || !districtNewPhone.trim()}
+                              >
+                                {districtAdding ? '등록 중...' : '등록'}
+                              </button>
+                              <button
+                                type="button"
+                                className="secondary"
+                                onClick={() => { setDistrictAddForm(null); setDistrictAddError(null) }}
+                              >
+                                취소
+                              </button>
+                            </div>
+                          </form>
+                        )}
                         {members
                           .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
                           .map(p => (
@@ -560,8 +654,8 @@ export default function ParticipantsPage() {
                                   onClick={() => togglePhoneReveal(p.id)}
                                   style={styles.memberPhone}
                                 >
-                                  {revealedPhones.has(p.id) && p.phone 
-                                    ? formatPhone(p.phone) 
+                                  {revealedPhones.has(p.id) && p.phone
+                                    ? formatPhone(p.phone)
                                     : `***-****-${p.phoneLast4}`
                                   }
                                   <span style={{ marginLeft: 4, fontSize: 12 }}>
@@ -686,6 +780,29 @@ const styles: { [key: string]: React.CSSProperties } = {
   addFormActions: {
     display: 'flex',
     gap: 12,
+  },
+  districtAddBtn: {
+    fontSize: 12,
+    padding: '4px 10px',
+    background: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+  },
+  districtInlineForm: {
+    background: '#faf7f4',
+    border: '1px dashed var(--color-primary)',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+  },
+  districtInlineGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+    gap: 10,
+    marginBottom: 12,
   },
   uploadCard: {
     padding: 24,
